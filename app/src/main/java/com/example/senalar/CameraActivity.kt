@@ -2,21 +2,26 @@ package com.example.senalar
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.hardware.camera2.CaptureRequest
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.Log
 import android.util.Range
 import android.widget.Toast
 import androidx.camera.camera2.interop.Camera2Interop
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Preview
-import androidx.camera.core.UseCaseGroup
+import androidx.camera.core.*
+import androidx.camera.core.R
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.senalar.databinding.ActivityCameraBinding
+import com.example.senalar.handlers.CalculateUtils
+import com.example.senalar.handlers.VideoClassifier
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 @androidx.camera.core.ExperimentalGetImage
 @androidx.camera.camera2.interop.ExperimentalCamera2Interop
@@ -26,10 +31,23 @@ class CameraActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivityCameraBinding
 
+    private val lock = Any()
+    private lateinit var executor: ExecutorService
+    private var videoClassifier: VideoClassifier? = null
+
+    private var lastInferenceStartTime: Long = 0
+    private var numThread = 1
+
+    // Saves the last result of the analysis
+    private var lastResult : String = "Nothing"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityCameraBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+        // Create Classifier
+        createClassifier()
 
         // Start the camera.
         if (allPermissionsGranted()) {
@@ -45,6 +63,7 @@ class CameraActivity : AppCompatActivity() {
      * Start the image capturing pipeline.
      */
     private fun startCamera() {
+        executor = Executors.newSingleThreadExecutor()
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
         cameraProviderFuture.addListener({
@@ -80,11 +99,9 @@ class CameraActivity : AppCompatActivity() {
                 )
                 val imageAnalysis = builder.build()
 
-                /*
                 imageAnalysis.setAnalyzer(executor) { imageProxy ->
                     processImage(imageProxy)
                 }
-                */
 
                 // Combine the ImageAnalysis and Preview into a use case group.
                 val useCaseGroup = UseCaseGroup.Builder()
@@ -102,6 +119,100 @@ class CameraActivity : AppCompatActivity() {
                 Log.e(TAG, "Use case binding failed.", e)
             }
         }, ContextCompat.getMainExecutor(this))
+    }
+
+    /**
+     * Run a frames received from the camera through the TFLite video classification pipeline.
+     */
+    private fun processImage(imageProxy: ImageProxy) {
+        // Ensure that only one frame is processed at any given moment.
+        synchronized(lock) {
+            val currentTime = SystemClock.uptimeMillis()
+            val diff = currentTime - lastInferenceStartTime
+
+            // Check to ensure that we only run inference at a frequency required by the
+            // model, within an acceptable error range (e.g. 10%). Discard the frames
+            // that comes too early.
+            if (diff * MODEL_FPS >= 1000 /* milliseconds */ * (1 - MODEL_FPS_ERROR_RANGE)) {
+                lastInferenceStartTime = currentTime
+
+                val image = imageProxy.image
+                image?.let {
+                    videoClassifier?.let { classifier ->
+                        // Convert the captured frame to Bitmap.
+                        val imageBitmap = Bitmap.createBitmap(
+                            it.width,
+                            it.height,
+                            Bitmap.Config.ARGB_8888
+                        )
+                        CalculateUtils.yuvToRgb(image, imageBitmap)
+
+                        // Rotate the image to the correct orientation.
+                        val rotateMatrix = Matrix()
+                        rotateMatrix.postRotate(
+                            imageProxy.imageInfo.rotationDegrees.toFloat()
+                        )
+                        val rotatedBitmap = Bitmap.createBitmap(
+                            imageBitmap, 0, 0, it.width, it.height,
+                            rotateMatrix, false
+                        )
+
+                        // Run inference using the TFLite model.
+                        val startTimeForReference = SystemClock.uptimeMillis()
+                        val results = classifier.classify(rotatedBitmap)
+                        val endTimeForReference =
+                            SystemClock.uptimeMillis() - startTimeForReference
+                        val inputFps = 1000f / diff
+
+                        if (results[0].label != lastResult) {
+                            runOnUiThread {
+                                Toast.makeText(this, "Texto: " + results[0].label, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        lastResult = results[0].label
+                        // Mostrar resultados
+                        //showResults(results, endTimeForReference, inputFps)
+
+                        if (inputFps < MODEL_FPS * (1 - MODEL_FPS_ERROR_RANGE)) {
+                            Log.w(
+                                TAG, "Current input FPS ($inputFps) is " +
+                                        "significantly lower than the TFLite model's " +
+                                        "expected FPS ($MODEL_FPS). It's likely because " +
+                                        "model inference takes too long on this device."
+                            )
+                        }
+                    }
+                }
+            }
+            imageProxy.close()
+        }
+    }
+
+    /**
+     * Initialize the TFLite video classifier.
+     */
+    private fun createClassifier() {
+        synchronized(lock) {
+            if (videoClassifier != null) {
+                videoClassifier?.close()
+                videoClassifier = null
+            }
+            val options =
+                VideoClassifier.VideoClassifierOptions.builder()
+                    .setMaxResult(MAX_RESULT)
+                    .setNumThreads(numThread)
+                    .build()
+            val modelFile = MODEL_MOVINET_A1_FILE
+
+            videoClassifier = VideoClassifier.createFromFileAndLabelsAndOptions(
+                this,
+                modelFile,
+                MODEL_LABEL_FILE,
+                options
+            )
+
+            Log.d(TAG, "Classifier created.")
+        }
     }
 
     /**
@@ -139,5 +250,11 @@ class CameraActivity : AppCompatActivity() {
         private const val MODEL_FPS = 5 // Ensure the input images are fed to the model at this fps.
         private const val MODEL_FPS_ERROR_RANGE = 0.1 // Acceptable error range in fps.
         private const val MAX_CAPTURE_FPS = 20
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        videoClassifier?.close()
+        executor.shutdown()
     }
 }
