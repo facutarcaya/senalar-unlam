@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.example.senalar.databinding.ActivityHomeBinding
 
+@androidx.camera.core.ExperimentalGetImage
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding : ActivityHomeBinding
 

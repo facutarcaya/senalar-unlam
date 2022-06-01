@@ -36,7 +36,7 @@ class CameraActivity : AppCompatActivity() {
     private var videoClassifier: VideoClassifier? = null
 
     private var lastInferenceStartTime: Long = 0
-    private var numThread = 1
+    private var numThread = 4
 
     // Saves the last result of the analysis
     private var lastResult : String = "Nothing"
