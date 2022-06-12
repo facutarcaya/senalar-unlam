@@ -6,13 +6,43 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <ImageView
+        android:id="@+id/ivLogoUnlam"
+        android:layout_width="76dp"
+        android:layout_height="78dp"
+        android:layout_marginTop="32dp"
+        android:src="@drawable/logo_unlam"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/ivLogoSenalar"
+            android:layout_width="127dp"
+            android:layout_height="133dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/des_logo_senalar"
+            android:src="@drawable/logo_senalar" />
+
+        <TextView
+            android:id="@+id/tVAppTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center"
+            android:text="@string/app_title"
+            android:textAlignment="center"
+            android:textColor="@color/teal_200"
+            android:textSize="34sp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
