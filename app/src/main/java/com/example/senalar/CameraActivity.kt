@@ -99,9 +99,11 @@ class CameraActivity : AppCompatActivity() {
                 )
                 val imageAnalysis = builder.build()
 
+                /*
                 imageAnalysis.setAnalyzer(executor) { imageProxy ->
                     processImage(imageProxy)
                 }
+                */
 
                 // Combine the ImageAnalysis and Preview into a use case group.
                 val useCaseGroup = UseCaseGroup.Builder()
