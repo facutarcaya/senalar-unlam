@@ -1,27 +1,33 @@
 package com.example.senalar
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
 import android.util.Range
+import android.view.LayoutInflater
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.*
-import androidx.camera.core.R
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.senalar.databinding.ActivityCameraBinding
+import com.example.senalar.databinding.CameraUiContainerBinding
 import com.example.senalar.handlers.CalculateUtils
 import com.example.senalar.handlers.VideoClassifier
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
 
 @androidx.camera.core.ExperimentalGetImage
 @androidx.camera.camera2.interop.ExperimentalCamera2Interop
@@ -30,6 +36,7 @@ import java.util.concurrent.Executors
 class CameraActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivityCameraBinding
+    private lateinit var cameraUiContainerBinding: CameraUiContainerBinding
 
     private val lock = Any()
     private lateinit var executor: ExecutorService
@@ -40,6 +47,12 @@ class CameraActivity : AppCompatActivity() {
 
     // Saves the last result of the analysis
     private var lastResult : String = "Nothing"
+
+    // Select back camera as a default
+    private var cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+
+    // Flashlight variables
+    private var flashLightOn = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityCameraBinding.inflate(layoutInflater)
@@ -57,6 +70,68 @@ class CameraActivity : AppCompatActivity() {
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
             )
         }
+
+        cameraUiContainerBinding = CameraUiContainerBinding.inflate(
+            LayoutInflater.from(binding.preview.context),
+            binding.root,
+            true
+        )
+
+        initializeButtons()
+    }
+
+    @Throws(CameraAccessException::class)
+    private fun getTorchCameraId(cameraManager: CameraManager): String? {
+        val cameraIdList = cameraManager.cameraIdList
+        var result: String? = null
+        for (id in cameraIdList) {
+            if (cameraManager.getCameraCharacteristics(id)
+                    .get(CameraCharacteristics.FLASH_INFO_AVAILABLE)!!
+            ) {
+                result = id
+                break
+            }
+        }
+        return result
+    }
+
+    private fun initializeButtons() {
+        cameraUiContainerBinding.btnSwitchCamera.setOnClickListener {
+            changeCamera()
+        }
+
+        cameraUiContainerBinding.btnSwitchFlash.setOnClickListener {
+            val camManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            var cameraId: String = ""
+            if (flashLightOn) {
+                try {
+                    getTorchCameraId(camManager)?.let { it1 -> camManager.setTorchMode(it1, false) }
+                    cameraUiContainerBinding.btnSwitchFlash.setImageDrawable(getDrawable(R.drawable.ic_baseline_flash_off_24))
+                    flashLightOn = false
+                } catch (e: CameraAccessException) {
+                    e.printStackTrace()
+                }
+            } else {
+                try {
+                    getTorchCameraId(camManager)?.let { it1 -> camManager.setTorchMode(it1, true) }
+                    cameraUiContainerBinding.btnSwitchFlash.setImageDrawable(getDrawable(R.drawable.ic_baseline_flash_on_24))
+                    flashLightOn = true
+
+                } catch (e: CameraAccessException) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    private fun changeCamera() {
+        cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
+            CameraSelector.DEFAULT_FRONT_CAMERA
+        } else {
+            CameraSelector.DEFAULT_BACK_CAMERA
+        }
+
+        startCamera()
     }
 
     /**
@@ -69,9 +144,6 @@ class CameraActivity : AppCompatActivity() {
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-
-            // Select back camera as a default
-            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
             // Create a Preview to show the image captured by the camera on screen.
             val preview = Preview.Builder()
@@ -238,6 +310,7 @@ class CameraActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Permissions not granted by the user.", Toast.LENGTH_LONG)
                     .show()
+                finish()
             }
         }
     }
