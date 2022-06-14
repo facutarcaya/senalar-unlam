@@ -4,7 +4,10 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Matrix
+import android.graphics.drawable.AnimatedImageDrawable
+import android.graphics.drawable.Drawable
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
@@ -14,6 +17,7 @@ import android.os.SystemClock
 import android.util.Log
 import android.util.Range
 import android.view.LayoutInflater
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.camera2.interop.Camera2Interop
@@ -25,8 +29,11 @@ import com.example.senalar.databinding.ActivityCameraBinding
 import com.example.senalar.databinding.CameraUiContainerBinding
 import com.example.senalar.handlers.CalculateUtils
 import com.example.senalar.handlers.VideoClassifier
+import kotlinx.coroutines.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 
 
 @androidx.camera.core.ExperimentalGetImage
@@ -53,6 +60,16 @@ class CameraActivity : AppCompatActivity() {
 
     // Flashlight variables
     private var flashLightOn = false
+
+    // Mute variables
+    private var muteOn = true
+    private val COLOR_OFF = "#D34A4A"
+    private val COLOR_ON = "#30E334"
+
+    // DEMO
+    var text : String = "HOLA"
+    var number: Int = 0
+    private var lastInferenceStartTimeDemo: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityCameraBinding.inflate(layoutInflater)
@@ -96,6 +113,16 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun initializeButtons() {
+        cameraUiContainerBinding.btnSwitchMute.setOnClickListener {
+            if (muteOn) {
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_play_circle_outline_24), COLOR_ON)
+                muteOn = false
+            } else {
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_pause_circle_outline_24), COLOR_OFF)
+                muteOn = true
+            }
+        }
+
         cameraUiContainerBinding.btnSwitchCamera.setOnClickListener {
             changeCamera()
         }
@@ -106,7 +133,7 @@ class CameraActivity : AppCompatActivity() {
             if (flashLightOn) {
                 try {
                     getTorchCameraId(camManager)?.let { it1 -> camManager.setTorchMode(it1, false) }
-                    cameraUiContainerBinding.btnSwitchFlash.setImageDrawable(getDrawable(R.drawable.ic_baseline_flash_off_24))
+                    changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchFlash, getDrawable(R.drawable.ic_baseline_flash_off_24), null)
                     flashLightOn = false
                 } catch (e: CameraAccessException) {
                     e.printStackTrace()
@@ -114,9 +141,8 @@ class CameraActivity : AppCompatActivity() {
             } else {
                 try {
                     getTorchCameraId(camManager)?.let { it1 -> camManager.setTorchMode(it1, true) }
-                    cameraUiContainerBinding.btnSwitchFlash.setImageDrawable(getDrawable(R.drawable.ic_baseline_flash_on_24))
+                    changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchFlash, getDrawable(R.drawable.ic_baseline_flash_on_24), null)
                     flashLightOn = true
-
                 } catch (e: CameraAccessException) {
                     e.printStackTrace()
                 }
@@ -171,11 +197,9 @@ class CameraActivity : AppCompatActivity() {
                 )
                 val imageAnalysis = builder.build()
 
-                /*
                 imageAnalysis.setAnalyzer(executor) { imageProxy ->
                     processImage(imageProxy)
                 }
-                */
 
                 // Combine the ImageAnalysis and Preview into a use case group.
                 val useCaseGroup = UseCaseGroup.Builder()
@@ -203,6 +227,10 @@ class CameraActivity : AppCompatActivity() {
         synchronized(lock) {
             val currentTime = SystemClock.uptimeMillis()
             val diff = currentTime - lastInferenceStartTime
+
+            //TODO borrar esto:
+            val currentTimeDemo = SystemClock.uptimeMillis()
+            val diffDemo = currentTimeDemo - lastInferenceStartTimeDemo
 
             // Check to ensure that we only run inference at a frequency required by the
             // model, within an acceptable error range (e.g. 10%). Discard the frames
@@ -238,11 +266,21 @@ class CameraActivity : AppCompatActivity() {
                             SystemClock.uptimeMillis() - startTimeForReference
                         val inputFps = 1000f / diff
 
+                        if (!muteOn && diffDemo > 2000) {
+                            lastInferenceStartTimeDemo = currentTimeDemo
+                            runOnUiThread {
+                                number = cameraUiContainerBinding.tvSubtitles.lineCount
+                                text = "$text HOLA$number"
+                                cameraUiContainerBinding.tvSubtitles.text = text
+                            }
+                        }
+                        /*
                         if (results[0].label != lastResult) {
                             runOnUiThread {
                                 Toast.makeText(this, "Texto: " + results[0].label, Toast.LENGTH_SHORT).show()
                             }
                         }
+                        */
                         lastResult = results[0].label
                         // Mostrar resultados
                         //showResults(results, endTimeForReference, inputFps)
@@ -312,6 +350,14 @@ class CameraActivity : AppCompatActivity() {
                     .show()
                 finish()
             }
+        }
+    }
+
+    private fun changeImageAndColorToButton(imageButton: ImageButton, imageDrawable: Drawable?, color: String?) {
+        imageButton.setImageDrawable(imageDrawable)
+
+        color?.let {
+            imageButton.setColorFilter(Color.parseColor(color))
         }
     }
 
