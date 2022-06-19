@@ -3,6 +3,8 @@
     <string name="des_logo_senalar">Logo aplicación Señalar</string>
     <string name="app_title">señalAR</string>
     <string name="how_to_use">¿Cómo se usa?</string>
+    <string name="explan_how_to_use">Selecciona \"Iniciar traducción\" y coloca el celular a aproximadamente 40cm, apuntando hacia vos.
+    Luego comenzá a expresarte en Lengua de Señas y la aplicación traducirá automáticamente.</string>
     <string name="how_it_works">¿Cómo funciona?</string>
     <string name="start_translate">Iniciar traducción</string>
 </resources>
