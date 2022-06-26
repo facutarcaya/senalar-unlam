@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Matrix
-import android.graphics.drawable.AnimatedImageDrawable
 import android.graphics.drawable.Drawable
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCharacteristics
@@ -32,8 +31,6 @@ import com.example.senalar.handlers.VideoClassifier
 import kotlinx.coroutines.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 
 @androidx.camera.core.ExperimentalGetImage
@@ -66,9 +63,15 @@ class CameraActivity : AppCompatActivity() {
     private val COLOR_OFF = "#D34A4A"
     private val COLOR_ON = "#30E334"
 
+    // Subtitles variables
+    private var firstLine = mutableListOf<String>()
+    private var secondLine = mutableListOf<String>()
+    private var thirdLine = mutableListOf<String>()
+    private var text : String = ""
+
     // DEMO
-    var text : String = "HOLA"
-    var number: Int = 0
+    var wordCounter: Int = 0
+    var lorepIpsum = listOf("Lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "Nulla", "sit", "amet", "lorem", "sed", "diam", "tempor", "lobortis", "ac")
     private var lastInferenceStartTimeDemo: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -269,9 +272,8 @@ class CameraActivity : AppCompatActivity() {
                         if (!muteOn && diffDemo > 2000) {
                             lastInferenceStartTimeDemo = currentTimeDemo
                             runOnUiThread {
-                                number = cameraUiContainerBinding.tvSubtitles.lineCount
-                                text = "$text HOLA$number"
-                                cameraUiContainerBinding.tvSubtitles.text = text
+                                addWordToSubtitle(lorepIpsum[wordCounter%lorepIpsum.size])
+                                wordCounter++
                             }
                         }
                         /*
@@ -298,6 +300,44 @@ class CameraActivity : AppCompatActivity() {
             }
             imageProxy.close()
         }
+    }
+
+    private fun addWordToSubtitle(newWord: String) {
+        var breakWord = false
+        text = "${text}$newWord "
+        cameraUiContainerBinding.tvSubtitlesGhost.text = text
+        var number = cameraUiContainerBinding.tvSubtitlesGhost.lineCount
+
+        when (number) {
+            1 -> firstLine.add(newWord)
+            2 -> secondLine.add(newWord)
+            3 -> thirdLine.add(newWord)
+            4 -> {
+                firstLine = secondLine
+                secondLine = thirdLine
+                thirdLine = mutableListOf(newWord)
+                breakWord = true
+            }
+        }
+
+        var finalText = ""
+
+        if (breakWord) {
+            for (word in firstLine) {
+                finalText = "${finalText}$word "
+            }
+            for (word in secondLine) {
+                finalText = "${finalText}$word "
+            }
+            for (word in thirdLine) {
+                finalText = "${finalText}$word "
+            }
+            text = finalText
+            cameraUiContainerBinding.tvSubtitlesGhost.text = text
+        } else {
+            finalText = text
+        }
+        cameraUiContainerBinding.tvSubtitles.text = finalText
     }
 
     /**
