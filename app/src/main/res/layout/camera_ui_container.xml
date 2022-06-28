@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageButton
+        android:id="@+id/btnSwitchCamera"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:scaleType="fitCenter"
+        android:background="@android:color/transparent"
+        app:srcCompat="@drawable/ic_baseline_flip_camera_android_24"
+        app:iconGravity="textEnd"
+        app:iconSize="40dp"
+        app:iconTint="#FFFFFF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_margin="16dp"
+        app:tint="#FFFFFF" />
+
+    <ImageButton
+        android:id="@+id/btnSwitchFlash"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:scaleType="fitCenter"
+        android:background="@android:color/transparent"
+        app:srcCompat="@drawable/ic_baseline_flash_off_24"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_margin="16dp"
+        app:tint="#FFFFFF" />
+
+    <TextView
+        android:id="@+id/tvSubtitles"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/btnSwitchMute"
+        android:layout_marginBottom="50dp"
+        android:background="#632E2D2D"
+        android:lineSpacingExtra="10dp"
+        android:paddingStart="5dp"
+        android:paddingEnd="5dp"
+        android:text="@string/text_sample"
+        android:textAlignment="center"
+        android:textAllCaps="true"
+        android:textColor="#FDFDFD"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvSubtitlesGhost"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/btnSwitchMute"
+        android:layout_marginBottom="50dp"
+        android:background="#002E2D00"
+        android:lineSpacingExtra="10dp"
+        android:paddingStart="5dp"
+        android:paddingEnd="5dp"
+        android:text="@string/text_sample"
+        android:textAlignment="center"
+        android:textAllCaps="true"
+        android:textColor="#00FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <ImageButton
+        android:id="@+id/btnSwitchMute"
+        android:layout_width="84dp"
+        android:layout_height="84dp"
+        android:layout_margin="40dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/ic_baseline_pause_circle_outline_24"
+        app:tint="#D34A4A" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

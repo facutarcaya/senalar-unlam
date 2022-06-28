@@ -1,27 +1,37 @@
 package com.example.senalar
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Matrix
+import android.graphics.drawable.Drawable
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
 import android.util.Range
+import android.view.LayoutInflater
+import android.widget.ImageButton
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.*
-import androidx.camera.core.R
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.senalar.databinding.ActivityCameraBinding
+import com.example.senalar.databinding.CameraUiContainerBinding
 import com.example.senalar.handlers.CalculateUtils
 import com.example.senalar.handlers.VideoClassifier
+import kotlinx.coroutines.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
 
 @androidx.camera.core.ExperimentalGetImage
 @androidx.camera.camera2.interop.ExperimentalCamera2Interop
@@ -30,6 +40,7 @@ import java.util.concurrent.Executors
 class CameraActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivityCameraBinding
+    private lateinit var cameraUiContainerBinding: CameraUiContainerBinding
 
     private val lock = Any()
     private lateinit var executor: ExecutorService
@@ -40,6 +51,28 @@ class CameraActivity : AppCompatActivity() {
 
     // Saves the last result of the analysis
     private var lastResult : String = "Nothing"
+
+    // Select back camera as a default
+    private var cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+
+    // Flashlight variables
+    private var flashLightOn = false
+
+    // Mute variables
+    private var muteOn = true
+    private val COLOR_OFF = "#D34A4A"
+    private val COLOR_ON = "#30E334"
+
+    // Subtitles variables
+    private var firstLine = mutableListOf<String>()
+    private var secondLine = mutableListOf<String>()
+    private var thirdLine = mutableListOf<String>()
+    private var text : String = ""
+
+    // DEMO
+    var wordCounter: Int = 0
+    var lorepIpsum = listOf("Lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "Nulla", "sit", "amet", "lorem", "sed", "diam", "tempor", "lobortis", "ac")
+    private var lastInferenceStartTimeDemo: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityCameraBinding.inflate(layoutInflater)
@@ -57,6 +90,77 @@ class CameraActivity : AppCompatActivity() {
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
             )
         }
+
+        cameraUiContainerBinding = CameraUiContainerBinding.inflate(
+            LayoutInflater.from(binding.preview.context),
+            binding.root,
+            true
+        )
+
+        initializeButtons()
+    }
+
+    @Throws(CameraAccessException::class)
+    private fun getTorchCameraId(cameraManager: CameraManager): String? {
+        val cameraIdList = cameraManager.cameraIdList
+        var result: String? = null
+        for (id in cameraIdList) {
+            if (cameraManager.getCameraCharacteristics(id)
+                    .get(CameraCharacteristics.FLASH_INFO_AVAILABLE)!!
+            ) {
+                result = id
+                break
+            }
+        }
+        return result
+    }
+
+    private fun initializeButtons() {
+        cameraUiContainerBinding.btnSwitchMute.setOnClickListener {
+            if (muteOn) {
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_play_circle_outline_24), COLOR_ON)
+                muteOn = false
+            } else {
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_pause_circle_outline_24), COLOR_OFF)
+                muteOn = true
+            }
+        }
+
+        cameraUiContainerBinding.btnSwitchCamera.setOnClickListener {
+            changeCamera()
+        }
+
+        cameraUiContainerBinding.btnSwitchFlash.setOnClickListener {
+            val camManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            var cameraId: String = ""
+            if (flashLightOn) {
+                try {
+                    getTorchCameraId(camManager)?.let { it1 -> camManager.setTorchMode(it1, false) }
+                    changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchFlash, getDrawable(R.drawable.ic_baseline_flash_off_24), null)
+                    flashLightOn = false
+                } catch (e: CameraAccessException) {
+                    e.printStackTrace()
+                }
+            } else {
+                try {
+                    getTorchCameraId(camManager)?.let { it1 -> camManager.setTorchMode(it1, true) }
+                    changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchFlash, getDrawable(R.drawable.ic_baseline_flash_on_24), null)
+                    flashLightOn = true
+                } catch (e: CameraAccessException) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    private fun changeCamera() {
+        cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
+            CameraSelector.DEFAULT_FRONT_CAMERA
+        } else {
+            CameraSelector.DEFAULT_BACK_CAMERA
+        }
+
+        startCamera()
     }
 
     /**
@@ -69,9 +173,6 @@ class CameraActivity : AppCompatActivity() {
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-
-            // Select back camera as a default
-            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
             // Create a Preview to show the image captured by the camera on screen.
             val preview = Preview.Builder()
@@ -99,11 +200,9 @@ class CameraActivity : AppCompatActivity() {
                 )
                 val imageAnalysis = builder.build()
 
-                /*
                 imageAnalysis.setAnalyzer(executor) { imageProxy ->
                     processImage(imageProxy)
                 }
-                */
 
                 // Combine the ImageAnalysis and Preview into a use case group.
                 val useCaseGroup = UseCaseGroup.Builder()
@@ -131,6 +230,10 @@ class CameraActivity : AppCompatActivity() {
         synchronized(lock) {
             val currentTime = SystemClock.uptimeMillis()
             val diff = currentTime - lastInferenceStartTime
+
+            //TODO borrar esto:
+            val currentTimeDemo = SystemClock.uptimeMillis()
+            val diffDemo = currentTimeDemo - lastInferenceStartTimeDemo
 
             // Check to ensure that we only run inference at a frequency required by the
             // model, within an acceptable error range (e.g. 10%). Discard the frames
@@ -166,11 +269,20 @@ class CameraActivity : AppCompatActivity() {
                             SystemClock.uptimeMillis() - startTimeForReference
                         val inputFps = 1000f / diff
 
+                        if (!muteOn && diffDemo > 2000) {
+                            lastInferenceStartTimeDemo = currentTimeDemo
+                            runOnUiThread {
+                                addWordToSubtitle(lorepIpsum[wordCounter%lorepIpsum.size])
+                                wordCounter++
+                            }
+                        }
+                        /*
                         if (results[0].label != lastResult) {
                             runOnUiThread {
                                 Toast.makeText(this, "Texto: " + results[0].label, Toast.LENGTH_SHORT).show()
                             }
                         }
+                        */
                         lastResult = results[0].label
                         // Mostrar resultados
                         //showResults(results, endTimeForReference, inputFps)
@@ -188,6 +300,44 @@ class CameraActivity : AppCompatActivity() {
             }
             imageProxy.close()
         }
+    }
+
+    private fun addWordToSubtitle(newWord: String) {
+        var breakWord = false
+        text = "${text}$newWord "
+        cameraUiContainerBinding.tvSubtitlesGhost.text = text
+        var number = cameraUiContainerBinding.tvSubtitlesGhost.lineCount
+
+        when (number) {
+            1 -> firstLine.add(newWord)
+            2 -> secondLine.add(newWord)
+            3 -> thirdLine.add(newWord)
+            4 -> {
+                firstLine = secondLine
+                secondLine = thirdLine
+                thirdLine = mutableListOf(newWord)
+                breakWord = true
+            }
+        }
+
+        var finalText = ""
+
+        if (breakWord) {
+            for (word in firstLine) {
+                finalText = "${finalText}$word "
+            }
+            for (word in secondLine) {
+                finalText = "${finalText}$word "
+            }
+            for (word in thirdLine) {
+                finalText = "${finalText}$word "
+            }
+            text = finalText
+            cameraUiContainerBinding.tvSubtitlesGhost.text = text
+        } else {
+            finalText = text
+        }
+        cameraUiContainerBinding.tvSubtitles.text = finalText
     }
 
     /**
@@ -238,7 +388,16 @@ class CameraActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Permissions not granted by the user.", Toast.LENGTH_LONG)
                     .show()
+                finish()
             }
+        }
+    }
+
+    private fun changeImageAndColorToButton(imageButton: ImageButton, imageDrawable: Drawable?, color: String?) {
+        imageButton.setImageDrawable(imageDrawable)
+
+        color?.let {
+            imageButton.setColorFilter(Color.parseColor(color))
         }
     }
 
