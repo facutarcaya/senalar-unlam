@@ -42,16 +42,16 @@ class VideoClassifier private constructor(
         .getInputTensorFromSignature(IMAGE_INPUT_NAME, SIGNATURE_KEY)
         .shape()
     private val outputCategoryCount = interpreter
-        .getOutputTensorFromSignature(LOGITS_OUTPUT_NAME, SIGNATURE_KEY)
+        .getOutputTensor(0)
         .shape()[1]
-    private val inputHeight = inputShape[2]
-    private val inputWidth = inputShape[3]
+    private val inputHeight = 117
+    private val inputWidth = 117
     private var inputState = HashMap<String, Any>()
     private val lock = Any()
 
     companion object {
-        private const val IMAGE_INPUT_NAME = "image"
-        private const val LOGITS_OUTPUT_NAME = "logits"
+        private const val IMAGE_INPUT_NAME = "input_45"
+        private const val LOGITS_OUTPUT_NAME = "dense_41"
         private const val SIGNATURE_KEY = "serving_default"
         private const val INPUT_MEAN = 0f
         private const val INPUT_STD = 255f
@@ -132,7 +132,13 @@ class VideoClassifier private constructor(
         synchronized(lock) {
             // Prepare inputs.
             val tensorImage = preprocessInputImage(inputBitmap)
-            inputState[IMAGE_INPUT_NAME] = tensorImage.buffer
+            var testImage: ByteBuffer = ByteBuffer.allocate(163840)
+            var i = 0
+            while (i < 163840) {
+                testImage.put(i, tensorImage.buffer.get(i))
+                i++
+            }
+            inputState[IMAGE_INPUT_NAME] = testImage
 
             // Initialize a placeholder to store the output objects.
             val outputs = initializeOutput()
