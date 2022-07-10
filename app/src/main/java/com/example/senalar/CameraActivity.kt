@@ -29,6 +29,7 @@ import com.example.senalar.databinding.CameraUiContainerBinding
 import com.example.senalar.handlers.CalculateUtils
 import com.example.senalar.handlers.VideoClassifier
 import kotlinx.coroutines.*
+import org.tensorflow.lite.support.label.Category
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -38,6 +39,8 @@ import java.util.concurrent.Executors
 @androidx.camera.core.ExperimentalUseCaseGroup
 @androidx.camera.lifecycle.ExperimentalUseCaseGroupLifecycle
 class CameraActivity : AppCompatActivity() {
+
+    private val debugMode = true
 
     private lateinit var binding : ActivityCameraBinding
     private lateinit var cameraUiContainerBinding: CameraUiContainerBinding
@@ -68,11 +71,6 @@ class CameraActivity : AppCompatActivity() {
     private var secondLine = mutableListOf<String>()
     private var thirdLine = mutableListOf<String>()
     private var text : String = ""
-
-    // DEMO
-    var wordCounter: Int = 0
-    var lorepIpsum = listOf("Lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "Nulla", "sit", "amet", "lorem", "sed", "diam", "tempor", "lobortis", "ac")
-    private var lastInferenceStartTimeDemo: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityCameraBinding.inflate(layoutInflater)
@@ -231,10 +229,6 @@ class CameraActivity : AppCompatActivity() {
             val currentTime = SystemClock.uptimeMillis()
             val diff = currentTime - lastInferenceStartTime
 
-            //TODO borrar esto:
-            val currentTimeDemo = SystemClock.uptimeMillis()
-            val diffDemo = currentTimeDemo - lastInferenceStartTimeDemo
-
             // Check to ensure that we only run inference at a frequency required by the
             // model, within an acceptable error range (e.g. 10%). Discard the frames
             // that comes too early.
@@ -269,23 +263,12 @@ class CameraActivity : AppCompatActivity() {
                             SystemClock.uptimeMillis() - startTimeForReference
                         val inputFps = 1000f / diff
 
-                        if (!muteOn && diffDemo > 2000) {
-                            lastInferenceStartTimeDemo = currentTimeDemo
-                            runOnUiThread {
-                                addWordToSubtitle(lorepIpsum[wordCounter%lorepIpsum.size])
-                                wordCounter++
-                            }
+                        showResultsInDebug(results)
+
+                        if (!muteOn && results[0].label != lastResult && results[0].score >= SCORE_THRESHOLD) {
+                            addWordToSubtitle(results[0].label)
+                            lastResult = results[0].label
                         }
-                        /*
-                        if (results[0].label != lastResult) {
-                            runOnUiThread {
-                                Toast.makeText(this, "Texto: " + results[0].label, Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                        */
-                        lastResult = results[0].label
-                        // Mostrar resultados
-                        //showResults(results, endTimeForReference, inputFps)
 
                         if (inputFps < MODEL_FPS * (1 - MODEL_FPS_ERROR_RANGE)) {
                             Log.w(
@@ -302,42 +285,56 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+    private fun showResultsInDebug(results: List<Category>) {
+        if (debugMode) {
+            runOnUiThread {
+                cameraUiContainerBinding.tvDetectedItem0.text =
+                    results[0].label + ": " + String.format("%.2f", results[0].score * 100) + "%"
+                cameraUiContainerBinding.tvDetectedItem1.text =
+                    results[1].label + ": " + String.format("%.2f", results[1].score * 100) + "%"
+                cameraUiContainerBinding.tvDetectedItem2.text =
+                    results[2].label + ": " + String.format("%.2f", results[2].score * 100) + "%"
+            }
+        }
+    }
+
     private fun addWordToSubtitle(newWord: String) {
-        var breakWord = false
-        text = "${text}$newWord "
-        cameraUiContainerBinding.tvSubtitlesGhost.text = text
-        var number = cameraUiContainerBinding.tvSubtitlesGhost.lineCount
-
-        when (number) {
-            1 -> firstLine.add(newWord)
-            2 -> secondLine.add(newWord)
-            3 -> thirdLine.add(newWord)
-            4 -> {
-                firstLine = secondLine
-                secondLine = thirdLine
-                thirdLine = mutableListOf(newWord)
-                breakWord = true
-            }
-        }
-
-        var finalText = ""
-
-        if (breakWord) {
-            for (word in firstLine) {
-                finalText = "${finalText}$word "
-            }
-            for (word in secondLine) {
-                finalText = "${finalText}$word "
-            }
-            for (word in thirdLine) {
-                finalText = "${finalText}$word "
-            }
-            text = finalText
+        runOnUiThread {
+            var breakWord = false
+            text = "${text}$newWord "
             cameraUiContainerBinding.tvSubtitlesGhost.text = text
-        } else {
-            finalText = text
+
+            when (cameraUiContainerBinding.tvSubtitlesGhost.lineCount) {
+                1 -> firstLine.add(newWord)
+                2 -> secondLine.add(newWord)
+                3 -> thirdLine.add(newWord)
+                4 -> {
+                    firstLine = secondLine
+                    secondLine = thirdLine
+                    thirdLine = mutableListOf(newWord)
+                    breakWord = true
+                }
+            }
+
+            var finalText = ""
+
+            if (breakWord) {
+                for (word in firstLine) {
+                    finalText = "${finalText}$word "
+                }
+                for (word in secondLine) {
+                    finalText = "${finalText}$word "
+                }
+                for (word in thirdLine) {
+                    finalText = "${finalText}$word "
+                }
+                text = finalText
+                cameraUiContainerBinding.tvSubtitlesGhost.text = text
+            } else {
+                finalText = text
+            }
+            cameraUiContainerBinding.tvSubtitles.text = finalText
         }
-        cameraUiContainerBinding.tvSubtitles.text = finalText
     }
 
     /**
@@ -406,11 +403,14 @@ class CameraActivity : AppCompatActivity() {
         private const val TAG = "TFLite-VidClassify"
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         private const val MAX_RESULT = 3
-        private const val MODEL_MOVINET_A1_FILE = "movinet_a1_stream_int8.tflite"
-        private const val MODEL_LABEL_FILE = "kinetics600_label_map.txt"
+        //private const val MODEL_MOVINET_A1_FILE = "movinet_a1_stream_int8.tflite"
+        //private const val MODEL_LABEL_FILE = "kinetics600_label_map.txt"
+        private const val MODEL_MOVINET_A1_FILE = "tf_model_lsa.tflite"
+        private const val MODEL_LABEL_FILE = "class_ind.txt"
         private const val MODEL_FPS = 5 // Ensure the input images are fed to the model at this fps.
         private const val MODEL_FPS_ERROR_RANGE = 0.1 // Acceptable error range in fps.
         private const val MAX_CAPTURE_FPS = 20
+        private const val SCORE_THRESHOLD = 0.50 // Min score to assume inference is correct
     }
 
     override fun onDestroy() {
