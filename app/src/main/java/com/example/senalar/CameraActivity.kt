@@ -50,7 +50,6 @@ class CameraActivity : AppCompatActivity() {
     private var videoClassifier: VideoClassifier? = null
 
     private var lastInferenceStartTime: Long = 0
-    private var numThread = 4
 
     // Saves the last result of the analysis
     private var lastResult : String = "Nothing"
@@ -263,13 +262,6 @@ class CameraActivity : AppCompatActivity() {
                             SystemClock.uptimeMillis() - startTimeForReference
                         val inputFps = 1000f / diff
 
-                        showResultsInDebug(results)
-
-                        if (!muteOn && results[0].label != lastResult && results[0].score >= SCORE_THRESHOLD) {
-                            addWordToSubtitle(results[0].label)
-                            lastResult = results[0].label
-                        }
-
                         if (inputFps < MODEL_FPS * (1 - MODEL_FPS_ERROR_RANGE)) {
                             Log.w(
                                 TAG, "Current input FPS ($inputFps) is " +
@@ -277,6 +269,13 @@ class CameraActivity : AppCompatActivity() {
                                         "expected FPS ($MODEL_FPS). It's likely because " +
                                         "model inference takes too long on this device."
                             )
+                        }
+
+                        showResultsInDebug(results)
+
+                        if (!muteOn && results[0].label != lastResult && results[0].score >= SCORE_THRESHOLD) {
+                            addWordToSubtitle(results[0].label)
+                            lastResult = results[0].label
                         }
                     }
                 }
@@ -403,14 +402,13 @@ class CameraActivity : AppCompatActivity() {
         private const val TAG = "TFLite-VidClassify"
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         private const val MAX_RESULT = 3
-        //private const val MODEL_MOVINET_A1_FILE = "movinet_a1_stream_int8.tflite"
-        //private const val MODEL_LABEL_FILE = "kinetics600_label_map.txt"
-        private const val MODEL_MOVINET_A1_FILE = "tf_model_lsa.tflite"
-        private const val MODEL_LABEL_FILE = "class_ind.txt"
+        private const val MODEL_MOVINET_A1_FILE = "movinet_a1_stream_int8.tflite"
+        private const val MODEL_LABEL_FILE = "kinetics600_label_map.txt"
         private const val MODEL_FPS = 5 // Ensure the input images are fed to the model at this fps.
         private const val MODEL_FPS_ERROR_RANGE = 0.1 // Acceptable error range in fps.
         private const val MAX_CAPTURE_FPS = 20
-        private const val SCORE_THRESHOLD = 0.50 // Min score to assume inference is correct
+        private const val SCORE_THRESHOLD = 0.30 // Min score to assume inference is correct
+        private const val numThread = 12
     }
 
     override fun onDestroy() {
