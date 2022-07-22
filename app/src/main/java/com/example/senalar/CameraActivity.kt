@@ -13,6 +13,7 @@ import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
 import android.os.Bundle
 import android.os.SystemClock
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.util.Range
 import android.view.LayoutInflater
@@ -30,6 +31,7 @@ import com.example.senalar.handlers.CalculateUtils
 import com.example.senalar.handlers.VideoClassifier
 import kotlinx.coroutines.*
 import org.tensorflow.lite.support.label.Category
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -38,7 +40,7 @@ import java.util.concurrent.Executors
 @androidx.camera.camera2.interop.ExperimentalCamera2Interop
 @androidx.camera.core.ExperimentalUseCaseGroup
 @androidx.camera.lifecycle.ExperimentalUseCaseGroupLifecycle
-class CameraActivity : AppCompatActivity() {
+class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private val debugMode = true
 
@@ -71,10 +73,17 @@ class CameraActivity : AppCompatActivity() {
     private var thirdLine = mutableListOf<String>()
     private var text : String = ""
 
+    //TTS variables
+    private var tts : TextToSpeech? = null
+    private var language = Locale.US
+
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityCameraBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+        // Initialize the TTS
+        tts = TextToSpeech(this, this)
 
         // Create Classifier
         createClassifier()
@@ -262,6 +271,15 @@ class CameraActivity : AppCompatActivity() {
                             SystemClock.uptimeMillis() - startTimeForReference
                         val inputFps = 1000f / diff
 
+                        showResultsInDebug(results)
+
+                        if (!muteOn && results[0].label != lastResult && results[0].score >= SCORE_THRESHOLD) {
+                            val newWord = results[0].label
+                            addWordToSubtitle(newWord)
+                            speakThroughTTS(newWord)
+                            lastResult = results[0].label
+                        }
+
                         if (inputFps < MODEL_FPS * (1 - MODEL_FPS_ERROR_RANGE)) {
                             Log.w(
                                 TAG, "Current input FPS ($inputFps) is " +
@@ -282,6 +300,14 @@ class CameraActivity : AppCompatActivity() {
             }
             imageProxy.close()
         }
+    }
+
+    /**
+     * Function for TTS
+     *
+     */
+    private fun speakThroughTTS(newWord: String) {
+        tts!!.speak(newWord, TextToSpeech.QUEUE_ADD, null, "")
     }
 
     private fun showResultsInDebug(results: List<Category>) {
@@ -415,5 +441,24 @@ class CameraActivity : AppCompatActivity() {
         super.onDestroy()
         videoClassifier?.close()
         executor.shutdown()
+
+        if (tts != null) {
+            tts!!.stop()
+            tts!!.shutdown()
+        }
+    }
+
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            // Set Spanish language for TTS
+            // TODO make this text
+            val result = tts!!.setLanguage(language)
+
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TTS", "This language is not supported")
+            }
+        } else {
+            Log.e("TTS", "Error initializing TTS")
+        }
     }
 }
