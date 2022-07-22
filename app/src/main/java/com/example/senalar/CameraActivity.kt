@@ -75,7 +75,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     //TTS variables
     private var tts : TextToSpeech? = null
-    private var language = Locale.US
+    private var language = Locale("spa", "MEX")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityCameraBinding.inflate(layoutInflater)

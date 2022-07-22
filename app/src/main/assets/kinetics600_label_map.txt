@@ -402,7 +402,7 @@ putting on lipstick
 putting on mascara
 putting on sari
 putting on shoes
-raising eyebrows
+levantando cejas
 reading book
 reading newspaper
 recording music
@@ -579,7 +579,7 @@ watching tv
 water skiing
 water sliding
 watering plants
-waving hand
+hola
 waxing back
 waxing chest
 waxing eyebrows
@@ -589,7 +589,7 @@ weaving fabric
 welding
 whistling
 windsurfing
-winking
+pestañeando
 wood burning (art)
 wrapping present
 wrestling
