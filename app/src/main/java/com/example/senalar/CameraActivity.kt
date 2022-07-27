@@ -141,18 +141,18 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun initializeSoundButton() {
         soundOn = preferencesHelper.getBooleanPreference(SOUND_ON_PREF)
         if (soundOn) {
-            changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchCamera, getDrawable(R.drawable.ic_baseline_volume_up_24), null)
+            changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchVolume, getDrawable(R.drawable.ic_baseline_volume_up_24), null)
         } else {
-            changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchCamera, getDrawable(R.drawable.ic_baseline_volume_off_24), null)
+            changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchVolume, getDrawable(R.drawable.ic_baseline_volume_off_24), null)
         }
 
         cameraUiContainerBinding.btnSwitchVolume.setOnClickListener {
             if (soundOn) {
-                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchCamera, getDrawable(R.drawable.ic_baseline_volume_off_24), null)
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchVolume, getDrawable(R.drawable.ic_baseline_volume_off_24), null)
                 soundOn = false
                 preferencesHelper.setBooleanPreference(SOUND_ON_PREF, soundOn)
             } else {
-                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchCamera, getDrawable(R.drawable.ic_baseline_volume_up_24), null)
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchVolume, getDrawable(R.drawable.ic_baseline_volume_up_24), null)
                 soundOn = true
                 preferencesHelper.setBooleanPreference(SOUND_ON_PREF, soundOn)
             }
