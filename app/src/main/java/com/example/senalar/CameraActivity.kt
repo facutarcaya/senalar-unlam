@@ -29,6 +29,8 @@ import com.example.senalar.databinding.ActivityCameraBinding
 import com.example.senalar.databinding.CameraUiContainerBinding
 import com.example.senalar.handlers.CalculateUtils
 import com.example.senalar.handlers.VideoClassifier
+import com.example.senalar.helpers.PreferencesHelper
+import com.example.senalar.helpers.PreferencesHelper.Companion.SOUND_ON_PREF
 import kotlinx.coroutines.*
 import org.tensorflow.lite.support.label.Category
 import java.util.*
@@ -66,6 +68,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var muteOn = true
     private val COLOR_OFF = "#D34A4A"
     private val COLOR_ON = "#30E334"
+    private var soundOn = true
 
     // Subtitles variables
     private var firstLine = mutableListOf<String>()
@@ -77,10 +80,16 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var tts : TextToSpeech? = null
     private var language = Locale("spa", "MEX")
 
+    //Preferences variables
+    private lateinit var preferencesHelper: PreferencesHelper
+
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityCameraBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+        //Initialize preferences
+        preferencesHelper = PreferencesHelper(this.applicationContext)
 
         // Initialize the TTS
         tts = TextToSpeech(this, this)
@@ -122,20 +131,49 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun initializeButtons() {
+        initializeSoundButton()
+        initializeMuteButton()
+        initializeCameraButton()
+        initializeFlashButton()
+    }
+
+    private fun initializeSoundButton() {
+        soundOn = preferencesHelper.getBooleanPreference(SOUND_ON_PREF)
+        if (soundOn) {
+            changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchVolume, getDrawable(R.drawable.ic_baseline_volume_up_24), null)
+        } else {
+            changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchVolume, getDrawable(R.drawable.ic_baseline_volume_off_24), null)
+        }
+
+        cameraUiContainerBinding.btnSwitchVolume.setOnClickListener {
+            if (soundOn) {
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchVolume, getDrawable(R.drawable.ic_baseline_volume_off_24), null)
+                soundOn = false
+                preferencesHelper.setBooleanPreference(SOUND_ON_PREF, soundOn)
+            } else {
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchVolume, getDrawable(R.drawable.ic_baseline_volume_up_24), null)
+                soundOn = true
+                preferencesHelper.setBooleanPreference(SOUND_ON_PREF, soundOn)
+            }
+        }
+    }
+
+    private fun initializeMuteButton() {
         cameraUiContainerBinding.btnSwitchMute.setOnClickListener {
             if (muteOn) {
                 changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_play_circle_outline_24), COLOR_ON)
                 muteOn = false
             } else {
+                // We restart the last word, since the user decided to stop the inference
+                lastResult = ""
+
                 changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_pause_circle_outline_24), COLOR_OFF)
                 muteOn = true
             }
         }
+    }
 
-        cameraUiContainerBinding.btnSwitchCamera.setOnClickListener {
-            changeCamera()
-        }
-
+    private fun initializeFlashButton() {
         cameraUiContainerBinding.btnSwitchFlash.setOnClickListener {
             val camManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
             var cameraId: String = ""
@@ -156,6 +194,12 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     e.printStackTrace()
                 }
             }
+        }
+    }
+
+    private fun initializeCameraButton() {
+        cameraUiContainerBinding.btnSwitchCamera.setOnClickListener {
+            changeCamera()
         }
     }
 
@@ -307,7 +351,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
      *
      */
     private fun speakThroughTTS(newWord: String) {
-        tts!!.speak(newWord, TextToSpeech.QUEUE_ADD, null, "")
+        if (soundOn) {
+            tts!!.speak(newWord, TextToSpeech.QUEUE_ADD, null, "")
+        }
     }
 
     private fun showResultsInDebug(results: List<Category>) {
@@ -451,7 +497,6 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             // Set Spanish language for TTS
-            // TODO make this text
             val result = tts!!.setLanguage(language)
 
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
