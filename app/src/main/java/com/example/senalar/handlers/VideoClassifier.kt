@@ -19,6 +19,7 @@ package com.example.senalar.handlers
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Size
+import com.google.mediapipe.solutions.hands.HandsResult
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.common.FileUtil
@@ -127,11 +128,18 @@ class VideoClassifier private constructor(
     /**
      * Run classify and return a list include action and score.
      */
-    fun classify(inputBitmap: Bitmap): List<Category> {
+    fun classify(handsResult: HandsResult): List<Category> {
         // As this model is stateful, ensure there's only one inference going on at once.
         synchronized(lock) {
             // Prepare inputs.
-            val tensorImage = preprocessInputImage(inputBitmap)
+
+            /** INIT DUMMY **/
+            val imageBitmap = Bitmap.createBitmap(
+                90,
+                90,
+                Bitmap.Config.ARGB_8888
+            )
+            val tensorImage = preprocessInputImage(imageBitmap)
             var testImage: ByteBuffer = ByteBuffer.allocate(163840)
             var i = 0
             while (i < 163840) {
@@ -139,6 +147,8 @@ class VideoClassifier private constructor(
                 i++
             }
             inputState[IMAGE_INPUT_NAME] = testImage
+
+            /** FINISH DUMMY **/
 
             // Initialize a placeholder to store the output objects.
             val outputs = initializeOutput()
