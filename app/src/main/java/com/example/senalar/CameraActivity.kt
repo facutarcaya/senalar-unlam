@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat
 import com.example.senalar.databinding.ActivityCameraBinding
 import com.example.senalar.databinding.CameraUiContainerBinding
 import com.example.senalar.handlers.CalculateUtils
+import com.example.senalar.handlers.HandClassifier
 import com.example.senalar.handlers.VideoClassifier
 import com.example.senalar.helpers.PreferencesHelper
 import com.example.senalar.helpers.PreferencesHelper.Companion.SOUND_ON_PREF
@@ -54,7 +55,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private val lock = Any()
     private lateinit var executor: ExecutorService
-    private var videoClassifier: VideoClassifier? = null
+    //private var videoClassifier: VideoClassifier? = null
+    private var handClassifier: HandClassifier? = null
 
     private var lastInferenceStartTime: Long = 0
     private var numThread = 4
@@ -143,7 +145,6 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
         hands.setResultListener {
                 handsResult -> runInference(handsResult)
-            logWristLandmark(handsResult, false)
         }
     }
 
@@ -347,7 +348,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 lastInferenceStartTime = currentTime
 
-                videoClassifier?.let { classifier ->
+                handClassifier?.let { classifier ->
 
                     // Run inference using the TFLite model.
 
@@ -440,7 +441,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     /**
      * Initialize the TFLite video classifier.
-     */
+
     private fun createClassifier() {
         synchronized(lock) {
             if (videoClassifier != null) {
@@ -464,6 +465,23 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             Log.d(TAG, "Classifier created.")
         }
     }
+     */
+
+    private fun createClassifier() {
+        synchronized(lock) {
+            if (handClassifier != null) {
+                handClassifier?.close()
+                handClassifier = null
+            }
+
+            handClassifier = HandClassifier.createHandClassifier(
+                this
+            )
+
+            Log.d(TAG, "Classifier created.")
+        }
+    }
+
 
     /**
      * Check whether camera permission is already granted.
@@ -520,7 +538,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        videoClassifier?.close()
+        handClassifier?.close()
         executor.shutdown()
 
         if (tts != null) {
@@ -540,42 +558,5 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         } else {
             Log.e("TTS", "Error initializing TTS")
         }
-    }
-
-    private fun logWristLandmark(result: HandsResult, showPixelValues: Boolean) {
-        if (result.multiHandLandmarks().isEmpty()) {
-            return
-        }
-        val wristLandmark = result.multiHandLandmarks()[0].landmarkList[HandLandmark.WRIST]
-        // For Bitmaps, show the pixel values. For texture inputs, show the normalized coordinates.
-        if (showPixelValues) {
-            val width = result.inputBitmap().width
-            val height = result.inputBitmap().height
-            Log.i(
-                "MEDIAPIPE_DEBUG", String.format(
-                    "MediaPipe Hand wrist coordinates (pixel values): x=%f, y=%f",
-                    wristLandmark.x * width, wristLandmark.y * height
-                )
-            )
-        } else {
-            Log.i(
-                "MEDIAPIPE_DEBUG", String.format(
-                    "MediaPipe Hand wrist normalized coordinates (value range: [0, 1]): x=%f, y=%f, z=%f",
-                    wristLandmark.x, wristLandmark.y, wristLandmark.z
-                )
-            )
-        }
-        if (result.multiHandWorldLandmarks().isEmpty()) {
-            return
-        }
-        val wristWorldLandmark =
-            result.multiHandWorldLandmarks()[0].landmarkList[HandLandmark.WRIST]
-        Log.i(
-            "MEDIAPIPE_DEBUG", String.format(
-                "MediaPipe Hand wrist world coordinates (in meters with the origin at the hand's"
-                        + " approximate geometric center): x=%f m, y=%f m, z=%f m",
-                wristWorldLandmark.x, wristWorldLandmark.y, wristWorldLandmark.z
-            )
-        )
     }
 }
