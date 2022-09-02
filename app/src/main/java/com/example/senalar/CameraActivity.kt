@@ -28,10 +28,14 @@ import androidx.core.content.ContextCompat
 import com.example.senalar.databinding.ActivityCameraBinding
 import com.example.senalar.databinding.CameraUiContainerBinding
 import com.example.senalar.handlers.CalculateUtils
+import com.example.senalar.handlers.HandClassifier
 import com.example.senalar.handlers.VideoClassifier
 import com.example.senalar.helpers.PreferencesHelper
 import com.example.senalar.helpers.PreferencesHelper.Companion.SOUND_ON_PREF
-import kotlinx.coroutines.*
+import com.google.mediapipe.solutions.hands.HandLandmark
+import com.google.mediapipe.solutions.hands.Hands
+import com.google.mediapipe.solutions.hands.HandsOptions
+import com.google.mediapipe.solutions.hands.HandsResult
 import org.tensorflow.lite.support.label.Category
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -51,7 +55,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private val lock = Any()
     private lateinit var executor: ExecutorService
-    private var videoClassifier: VideoClassifier? = null
+    //private var videoClassifier: VideoClassifier? = null
+    private var handClassifier: HandClassifier? = null
 
     private var lastInferenceStartTime: Long = 0
     private var numThread = 4
@@ -84,6 +89,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     //Preferences variables
     private lateinit var preferencesHelper: PreferencesHelper
 
+    //Mediapipe variables
+    private lateinit var hands: Hands
+
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityCameraBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
@@ -94,6 +102,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Initialize the TTS
         tts = TextToSpeech(this, this)
+
+        //Initialize Hand Detection
+        initializeHandsDetector()
 
         // Create Classifier
         createClassifier()
@@ -114,6 +125,27 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
 
         initializeButtons()
+    }
+
+    private fun initializeHandsDetector() {
+        // Initializes a new MediaPipe Hands solution instance in the streaming mode.
+        hands = Hands(
+            this,
+            HandsOptions.builder()
+                .setStaticImageMode(false)
+                .setMaxNumHands(2)
+                .setRunOnGpu(RUN_ON_GPU)
+                .build()
+        )
+        hands.setErrorListener { message: String, e: RuntimeException? ->
+            Log.e(
+                "MEDIAPIPE_ERROR",
+                "MediaPipe Hands error:$message"
+            )
+        }
+        hands.setResultListener {
+                handsResult -> runInference(handsResult)
+        }
     }
 
     @Throws(CameraAccessException::class)
@@ -277,6 +309,33 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
      * Run a frames received from the camera through the TFLite video classification pipeline.
      */
     private fun processImage(imageProxy: ImageProxy) {
+        val image = imageProxy.image
+        image?.let {
+            // Convert the captured frame to Bitmap.
+            val imageBitmap = Bitmap.createBitmap(
+                it.width,
+                it.height,
+                Bitmap.Config.ARGB_8888
+            )
+            CalculateUtils.yuvToRgb(image, imageBitmap)
+
+            // Rotate the image to the correct orientation.
+            val rotateMatrix = Matrix()
+            rotateMatrix.postRotate(
+                imageProxy.imageInfo.rotationDegrees.toFloat()
+            )
+            val rotatedBitmap = Bitmap.createBitmap(
+                imageBitmap, 0, 0, it.width, it.height,
+                rotateMatrix, false
+            )
+
+            val currentTime = SystemClock.uptimeMillis()
+            hands.send(rotatedBitmap, currentTime)
+        }
+        imageProxy.close()
+    }
+
+    private fun runInference(handsResult: HandsResult) {
         // Ensure that only one frame is processed at any given moment.
         synchronized(lock) {
             val currentTime = SystemClock.uptimeMillis()
@@ -286,57 +345,35 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // model, within an acceptable error range (e.g. 10%). Discard the frames
             // that comes too early.
             if (diff * MODEL_FPS >= 1000 /* milliseconds */ * (1 - MODEL_FPS_ERROR_RANGE)) {
+
                 lastInferenceStartTime = currentTime
 
-                val image = imageProxy.image
-                image?.let {
-                    videoClassifier?.let { classifier ->
-                        // Convert the captured frame to Bitmap.
-                        val imageBitmap = Bitmap.createBitmap(
-                            it.width,
-                            it.height,
-                            Bitmap.Config.ARGB_8888
+                handClassifier?.let { classifier ->
+
+                    // Run inference using the TFLite model.
+
+                    val results = classifier.classify(handsResult)
+                    val inputFps = 1000f / diff
+
+                    showResultsInDebug(results)
+
+                    if (!muteOn && results[0].label != lastResult && results[0].score >= SCORE_THRESHOLD) {
+                        val newWord = results[0].label
+                        addWordToSubtitle(newWord)
+                        speakThroughTTS(newWord)
+                        lastResult = results[0].label
+                    }
+
+                    if (inputFps < MODEL_FPS * (1 - MODEL_FPS_ERROR_RANGE)) {
+                        Log.w(
+                            TAG, "Current input FPS ($inputFps) is " +
+                                    "significantly lower than the TFLite model's " +
+                                    "expected FPS ($MODEL_FPS). It's likely because " +
+                                    "model inference takes too long on this device."
                         )
-                        CalculateUtils.yuvToRgb(image, imageBitmap)
-
-                        // Rotate the image to the correct orientation.
-                        val rotateMatrix = Matrix()
-                        rotateMatrix.postRotate(
-                            imageProxy.imageInfo.rotationDegrees.toFloat()
-                        )
-                        val rotatedBitmap = Bitmap.createBitmap(
-                            imageBitmap, 0, 0, it.width, it.height,
-                            rotateMatrix, false
-                        )
-
-                        // Run inference using the TFLite model.
-                        val startTimeForReference = SystemClock.uptimeMillis()
-                        val results = classifier.classify(rotatedBitmap)
-                        val endTimeForReference =
-                            SystemClock.uptimeMillis() - startTimeForReference
-                        val inputFps = 1000f / diff
-
-                        showResultsInDebug(results)
-
-                        if (!muteOn && results[0].label != lastResult && results[0].score >= SCORE_THRESHOLD) {
-                            val newWord = results[0].label
-                            addWordToSubtitle(newWord)
-                            speakThroughTTS(newWord)
-                            lastResult = results[0].label
-                        }
-
-                        if (inputFps < MODEL_FPS * (1 - MODEL_FPS_ERROR_RANGE)) {
-                            Log.w(
-                                TAG, "Current input FPS ($inputFps) is " +
-                                        "significantly lower than the TFLite model's " +
-                                        "expected FPS ($MODEL_FPS). It's likely because " +
-                                        "model inference takes too long on this device."
-                            )
-                        }
                     }
                 }
             }
-            imageProxy.close()
         }
     }
 
@@ -404,7 +441,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     /**
      * Initialize the TFLite video classifier.
-     */
+
     private fun createClassifier() {
         synchronized(lock) {
             if (videoClassifier != null) {
@@ -428,6 +465,23 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             Log.d(TAG, "Classifier created.")
         }
     }
+     */
+
+    private fun createClassifier() {
+        synchronized(lock) {
+            if (handClassifier != null) {
+                handClassifier?.close()
+                handClassifier = null
+            }
+
+            handClassifier = HandClassifier.createHandClassifier(
+                this
+            )
+
+            Log.d(TAG, "Classifier created.")
+        }
+    }
+
 
     /**
      * Check whether camera permission is already granted.
@@ -464,6 +518,10 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     companion object {
+        //Mediapipe
+        private const val RUN_ON_GPU = true
+
+        //Tensorflow
         private const val REQUEST_CODE_PERMISSIONS = 10
         private const val TAG = "TFLite-VidClassify"
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
@@ -480,7 +538,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        videoClassifier?.close()
+        handClassifier?.close()
         executor.shutdown()
 
         if (tts != null) {
