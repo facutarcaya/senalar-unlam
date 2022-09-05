@@ -2,6 +2,7 @@ package com.example.senalar
 
 import android.Manifest
 import android.content.Context
+import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -17,14 +18,17 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.util.Range
 import android.view.LayoutInflater
+import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.senalar.connection.ClientPC
 import com.example.senalar.databinding.ActivityCameraBinding
 import com.example.senalar.databinding.CameraUiContainerBinding
 import com.example.senalar.handlers.CalculateUtils
@@ -91,6 +95,10 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     //Mediapipe variables
     private lateinit var hands: Hands
+
+    //Server variables
+    private var clientPC: ClientPC? = null
+    private var connectedToPc = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityCameraBinding.inflate(layoutInflater)
@@ -168,6 +176,42 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         initializeMuteButton()
         initializeCameraButton()
         initializeFlashButton()
+        initializeCastButton()
+    }
+
+    private fun initializeCastButton() {
+        cameraUiContainerBinding.btnCastToPC.setOnClickListener {
+            val builder = AlertDialog.Builder(this)
+            val inflater = layoutInflater
+
+            if (connectedToPc) {
+                with(builder) {
+                    setTitle("Desconectar")
+                    setMessage("¿Está seguro que detener la transmisión?")
+                    setPositiveButton("OK") { dialogInterface, i ->
+                        clientPC?.let { it.disconnect() }
+                    }
+                    setNegativeButton("CANCELAR") {dialogInterface, i -> /** DO NOTHING*/}
+                    show()
+                }
+            } else {
+                builder.setTitle("Conectar a PC")
+                val dialogLayout = inflater.inflate(R.layout.alert_dialog_with_edittext, null)
+                val editText  = dialogLayout.findViewById<EditText>(R.id.editText)
+                builder.setView(dialogLayout)
+                builder.setPositiveButton("CONECTAR") { dialogInterface, i ->
+                    connectToIP(editText.text.toString())
+                }
+                builder.setNegativeButton("CANCELAR") {dialogInterface, i -> /** DO NOTHING*/}
+                builder.show()
+            }
+        }
+    }
+
+    private fun connectToIP(ip: String) {
+        if (ip.isNotEmpty()) {
+            this.clientPC = ClientPC(this, ip)
+        }
     }
 
     private fun initializeSoundButton() {
@@ -358,9 +402,10 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     showResultsInDebug(results)
 
                     if (!muteOn && results[0].label != lastResult && results[0].score >= SCORE_THRESHOLD) {
-                        val newWord = results[0].label
+                        val newWord = sanitizeNewWord(results[0].label)
                         addWordToSubtitle(newWord)
                         speakThroughTTS(newWord)
+                        sendToPC(newWord)
                         lastResult = results[0].label
                     }
 
@@ -375,6 +420,15 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
             }
         }
+    }
+
+    private fun sendToPC(newWord: String) {
+        this.clientPC?.let { it.addWordToQueue("${newWord}|") }
+    }
+
+    fun sanitizeNewWord(word: String): String {
+        val splittedWord = word.split("_")
+        return splittedWord[0]
     }
 
     /**
@@ -557,6 +611,23 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         } else {
             Log.e("TTS", "Error initializing TTS")
+        }
+    }
+
+    fun showToast(msg: String) {
+        runOnUiThread {
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun changeCastState(state: Boolean) {
+        runOnUiThread {
+            connectedToPc = state
+            if (state) {
+                changeImageAndColorToButton(cameraUiContainerBinding.btnCastToPC, getDrawable(R.drawable.ic_baseline_cast_connected_24), null)
+            } else {
+                changeImageAndColorToButton(cameraUiContainerBinding.btnCastToPC, getDrawable(R.drawable.ic_baseline_cast_24), null)
+            }
         }
     }
 }

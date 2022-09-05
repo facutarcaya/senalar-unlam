@@ -125,8 +125,6 @@ class HandClassifier private constructor(
             indexArray++
         }
 
-        Log.i("FACU_DEBUG", "Total marks: $indexArray")
-
         return uniArray
     }
 
