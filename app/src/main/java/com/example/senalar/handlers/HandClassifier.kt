@@ -1,7 +1,6 @@
 package com.example.senalar.handlers
 
 import android.content.Context
-import android.util.Log
 import com.google.mediapipe.formats.proto.LandmarkProto
 import com.google.mediapipe.solutions.hands.HandsResult
 import org.tensorflow.lite.Interpreter
