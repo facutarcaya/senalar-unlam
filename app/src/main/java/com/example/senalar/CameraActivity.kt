@@ -401,12 +401,14 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                     showResultsInDebug(results)
 
-                    if (!muteOn && results[0].label != lastResult && results[0].score >= SCORE_THRESHOLD) {
-                        val newWord = sanitizeNewWord(results[0].label)
+                    val newWord = sanitizeNewWord(results[0].label)
+                    val newWordScore = results[0].score
+
+                    if (!muteOn && newWord != lastResult && newWordScore >= SCORE_THRESHOLD) {
                         addWordToSubtitle(newWord)
                         speakThroughTTS(newWord)
                         sendToPC(newWord)
-                        lastResult = results[0].label
+                        lastResult = newWord
                     }
 
                     if (inputFps < MODEL_FPS * (1 - MODEL_FPS_ERROR_RANGE)) {
@@ -422,13 +424,13 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun sendToPC(newWord: String) {
-        this.clientPC?.let { it.addWordToQueue("${newWord}|") }
+    private fun sanitizeNewWord(word: String): String {
+        val splitWord = word.split("_")
+        return splitWord[0]
     }
 
-    fun sanitizeNewWord(word: String): String {
-        val splittedWord = word.split("_")
-        return splittedWord[0]
+    private fun sendToPC(newWord: String) {
+        this.clientPC?.let { it.addWordToQueue("${newWord}|") }
     }
 
     /**
