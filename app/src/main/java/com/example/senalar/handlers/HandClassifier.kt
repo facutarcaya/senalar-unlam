@@ -22,8 +22,8 @@ class HandClassifier private constructor(
 
     companion object {
         private const val ACCURACY_THRESHOLD = 0.7f
-        private const val MODEL_PATH = "keypoint_image_classifier.tflite"
-        private const val LABELS_PATH = "keypoint_image_labels.txt"
+        private const val MODEL_PATH = "numbers_model.tflite"
+        private const val LABELS_PATH = "numbers_labels.txt"
         private const val NUM_THREADS = 1
         private const val MAX_OPTIONS = 3
 
@@ -42,8 +42,8 @@ class HandClassifier private constructor(
     }
 
     fun classify(handsResult: HandsResult): List<Category> {
-        var leftHandLandmarks : FloatArray = FloatArray(63)
-        var rightHandLandmarks : FloatArray = FloatArray(63)
+        var leftHandLandmarks : FloatArray = FloatArray(42)
+        var rightHandLandmarks : FloatArray = FloatArray(42)
 
         val numHands =  handsResult.multiHandLandmarks().size
 
@@ -63,7 +63,7 @@ class HandClassifier private constructor(
 
         val outputval = Array(1) {
             FloatArray(
-                6
+                22
             )
         }
 
@@ -93,18 +93,18 @@ class HandClassifier private constructor(
         leftHandLandmarks: FloatArray,
         rightHandLandmarks: FloatArray
     ): FloatArray {
-        val uniArrayLandmarks = FloatArray(126)
+        val uniArrayLandmarks = FloatArray(84)
 
         var handIndex = 0
         var totalIndex = 0
 
-        while (handIndex < 63) {
+        while (handIndex < 42) {
             uniArrayLandmarks[totalIndex++] = leftHandLandmarks[handIndex++]
         }
 
         handIndex = 0
 
-        while (handIndex < 63) {
+        while (handIndex < 42) {
             uniArrayLandmarks[totalIndex++] = rightHandLandmarks[handIndex++]
         }
 
@@ -112,15 +112,13 @@ class HandClassifier private constructor(
     }
 
     private fun getLandMarksAsUniArray(landmarks: List<LandmarkProto.NormalizedLandmark>) : FloatArray {
-        val uniArray = FloatArray(63)
+        val uniArray = FloatArray(42)
         var indexArray = 0
 
         for (landmark in landmarks) {
             uniArray[indexArray] = landmark.x
             indexArray++
             uniArray[indexArray] = landmark.y
-            indexArray++
-            uniArray[indexArray] = landmark.z
             indexArray++
         }
 

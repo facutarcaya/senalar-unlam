@@ -584,7 +584,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val MODEL_FPS = 5 // Ensure the input images are fed to the model at this fps.
         private const val MODEL_FPS_ERROR_RANGE = 0.1 // Acceptable error range in fps.
         private const val MAX_CAPTURE_FPS = 20
-        private const val SCORE_THRESHOLD = 0.50 // Min score to assume inference is correct
+        private const val SCORE_THRESHOLD = 0.30 // Min score to assume inference is correct
     }
 
     override fun onDestroy() {
