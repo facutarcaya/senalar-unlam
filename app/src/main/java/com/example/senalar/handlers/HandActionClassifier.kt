@@ -13,7 +13,7 @@ class HandActionClassifier private constructor(
     private val interpreter: Interpreter,
     private val labels: List<String>,
     private val maxResults: Int?
-) {
+) : HandClassifier {
     var frameCount = 0
     var frameQueue = LinkedList<FloatArray>()
 
@@ -38,7 +38,7 @@ class HandActionClassifier private constructor(
         }
     }
 
-    fun classify(handsResult: HandsResult): List<Category> {
+    override fun classify(handsResult: HandsResult): List<Category> {
         var leftHandLandmarks : FloatArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
         var rightHandLandmarks : FloatArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
 
@@ -156,7 +156,7 @@ class HandActionClassifier private constructor(
         return uniArray
     }
 
-    fun close() {
+    override fun close() {
         interpreter.close()
     }
 }

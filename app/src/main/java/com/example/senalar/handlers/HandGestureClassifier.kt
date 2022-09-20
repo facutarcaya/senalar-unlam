@@ -12,7 +12,7 @@ class HandGestureClassifier private constructor(
     private val interpreter: Interpreter,
     private val labels: List<String>,
     private val maxResults: Int?
-) {
+) : HandClassifier {
     companion object {
         private const val NUM_THREADS = 1
         private const val MAX_OPTIONS = 3
@@ -33,7 +33,7 @@ class HandGestureClassifier private constructor(
         }
     }
 
-    fun classify(handsResult: HandsResult): List<Category> {
+    override fun classify(handsResult: HandsResult): List<Category> {
         var leftHandLandmarks : FloatArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
         var rightHandLandmarks : FloatArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
 
@@ -117,7 +117,7 @@ class HandGestureClassifier private constructor(
         return uniArray
     }
 
-    fun close() {
+    override fun close() {
         interpreter.close()
     }
 }

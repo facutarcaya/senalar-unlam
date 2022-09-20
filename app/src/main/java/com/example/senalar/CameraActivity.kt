@@ -32,6 +32,7 @@ import com.example.senalar.databinding.ActivityCameraBinding
 import com.example.senalar.databinding.CameraUiContainerBinding
 import com.example.senalar.handlers.CalculateUtils
 import com.example.senalar.handlers.HandActionClassifier
+import com.example.senalar.handlers.HandClassifier
 import com.example.senalar.handlers.HandGestureClassifier
 import com.example.senalar.helpers.PreferencesHelper
 import com.example.senalar.helpers.PreferencesHelper.Companion.SOUND_ON_PREF
@@ -57,14 +58,21 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private val lock = Any()
     private lateinit var executor: ExecutorService
-    //private var videoClassifier: VideoClassifier? = null
-    private var handGestureClassifier: HandActionClassifier? = null
+
+    // Model variables
+    private var handClassifier: HandClassifier? = null
+    private var handWordsClassifier: HandActionClassifier? = null
+    private var handNumbersClassifier: HandGestureClassifier? = null
+    private var handLettersClassifier: HandGestureClassifier? = null
+    private var isActionDetection = true
+    private var scoreThreshold = 0.50 // Min score to assume inference is correct
 
     private var lastInferenceStartTime: Long = 0
-    private var numThread = 4
 
     // Saves the last result of the analysis
     private var lastResult : String = "Nothing"
+    private var actionLastResult : String = "None"
+    private var detectionCount = 0
 
     // Select back camera as a default
     private var cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
@@ -113,7 +121,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         initializeHandsDetector()
 
         // Create Classifier
-        createClassifier()
+        createClassifiers()
 
         // Start the camera.
         if (allPermissionsGranted()) {
@@ -175,6 +183,27 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         initializeCameraButton()
         initializeFlashButton()
         initializeCastButton()
+        initializeModelButtons()
+    }
+
+    private fun initializeModelButtons() {
+        cameraUiContainerBinding.btnNumbers.setOnClickListener {
+            handClassifier = handNumbersClassifier
+            isActionDetection = false
+            scoreThreshold = 0.30
+        }
+
+        cameraUiContainerBinding.btnLetters.setOnClickListener {
+            handClassifier = handLettersClassifier
+            isActionDetection = false
+            scoreThreshold = 0.30
+        }
+
+        cameraUiContainerBinding.btnWords.setOnClickListener {
+            handClassifier = handWordsClassifier
+            isActionDetection = true
+            scoreThreshold = 0.50
+        }
     }
 
     private fun initializeCastButton() {
@@ -390,7 +419,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 lastInferenceStartTime = currentTime
 
-                handGestureClassifier?.let { classifier ->
+                handClassifier?.let { classifier ->
 
                     // Run inference using the TFLite model.
 
@@ -402,11 +431,28 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     val newWord = sanitizeNewWord(results[0].label)
                     val newWordScore = results[0].score
 
-                    if (!muteOn && newWord != lastResult && newWordScore >= SCORE_THRESHOLD) {
-                        addWordToSubtitle(newWord)
-                        speakThroughTTS(newWord)
-                        sendToPC(newWord)
-                        lastResult = newWord
+                    if (!muteOn && newWord != lastResult && newWordScore >= scoreThreshold) {
+                        if (isActionDetection) {
+                            if (newWord != actionLastResult) {
+                                detectionCount = 0
+                                actionLastResult = newWord
+                            } else {
+                                detectionCount++
+                                if (detectionCount >= MIN_DETECTION_ACTION) {
+                                    addWordToSubtitle(newWord)
+                                    speakThroughTTS(newWord)
+                                    sendToPC(newWord)
+                                    lastResult = newWord
+                                    detectionCount = 0
+                                }
+                            }
+                        } else {
+                            addWordToSubtitle(newWord)
+                            speakThroughTTS(newWord)
+                            sendToPC(newWord)
+                            lastResult = newWord
+
+                        }
                     }
 
                     if (inputFps < MODEL_FPS * (1 - MODEL_FPS_ERROR_RANGE)) {
@@ -493,18 +539,47 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun createClassifier() {
+    private fun createClassifiers() {
         synchronized(lock) {
-            if (handGestureClassifier != null) {
-                handGestureClassifier?.close()
-                handGestureClassifier = null
+            if (handWordsClassifier != null) {
+                handWordsClassifier?.close()
+                handWordsClassifier = null
             }
 
-            handGestureClassifier = HandActionClassifier.createHandActionClassifier(
-                this, "point_history_classifier.tflite", "point_history_classifier_labels.txt"
+            handWordsClassifier = HandActionClassifier.createHandActionClassifier(
+                this, "words_model.tflite", "words_labels.txt"
             )
 
-            Log.d(TAG, "Classifier created.")
+            Log.d(TAG, "Words Classifier created.")
+
+            if (handNumbersClassifier != null) {
+                handNumbersClassifier?.close()
+                handNumbersClassifier = null
+            }
+
+            handNumbersClassifier = HandGestureClassifier.createHandGestureClassifier(
+                this, "numbers_model.tflite", "numbers_labels.txt"
+            )
+
+            Log.d(TAG, "Numbers Classifier created.")
+
+            if (handLettersClassifier != null) {
+                handLettersClassifier?.close()
+                handLettersClassifier = null
+            }
+
+            handLettersClassifier = HandGestureClassifier.createHandGestureClassifier(
+                this, "numbers_model.tflite", "numbers_labels.txt"
+            )
+
+            Log.d(TAG, "Letters Classifier created.")
+
+            if (handClassifier != null) {
+                handClassifier?.close()
+                handClassifier = null
+            }
+
+            handClassifier = handWordsClassifier
         }
     }
 
@@ -554,12 +629,14 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val MODEL_FPS = 16 // Ensure the input images are fed to the model at this fps.
         private const val MODEL_FPS_ERROR_RANGE = 0.1 // Acceptable error range in fps.
         private const val MAX_CAPTURE_FPS = 20
-        private const val SCORE_THRESHOLD = 0.50 // Min score to assume inference is correct
+        private const val MIN_DETECTION_ACTION = 10
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        handGestureClassifier?.close()
+        handWordsClassifier?.close()
+        handNumbersClassifier?.close()
+        handLettersClassifier?.close()
         executor.shutdown()
 
         if (tts != null) {
