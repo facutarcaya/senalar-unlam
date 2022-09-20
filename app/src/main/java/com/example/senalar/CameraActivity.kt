@@ -2,7 +2,6 @@ package com.example.senalar
 
 import android.Manifest
 import android.content.Context
-import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -32,11 +31,9 @@ import com.example.senalar.connection.ClientPC
 import com.example.senalar.databinding.ActivityCameraBinding
 import com.example.senalar.databinding.CameraUiContainerBinding
 import com.example.senalar.handlers.CalculateUtils
-import com.example.senalar.handlers.HandClassifier
-import com.example.senalar.handlers.VideoClassifier
+import com.example.senalar.handlers.HandGestureClassifier
 import com.example.senalar.helpers.PreferencesHelper
 import com.example.senalar.helpers.PreferencesHelper.Companion.SOUND_ON_PREF
-import com.google.mediapipe.solutions.hands.HandLandmark
 import com.google.mediapipe.solutions.hands.Hands
 import com.google.mediapipe.solutions.hands.HandsOptions
 import com.google.mediapipe.solutions.hands.HandsResult
@@ -60,7 +57,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private val lock = Any()
     private lateinit var executor: ExecutorService
     //private var videoClassifier: VideoClassifier? = null
-    private var handClassifier: HandClassifier? = null
+    private var handGestureClassifier: HandGestureClassifier? = null
 
     private var lastInferenceStartTime: Long = 0
     private var numThread = 4
@@ -392,7 +389,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 lastInferenceStartTime = currentTime
 
-                handClassifier?.let { classifier ->
+                handGestureClassifier?.let { classifier ->
 
                     // Run inference using the TFLite model.
 
@@ -495,43 +492,15 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    /**
-     * Initialize the TFLite video classifier.
-
     private fun createClassifier() {
         synchronized(lock) {
-            if (videoClassifier != null) {
-                videoClassifier?.close()
-                videoClassifier = null
-            }
-            val options =
-                VideoClassifier.VideoClassifierOptions.builder()
-                    .setMaxResult(MAX_RESULT)
-                    .setNumThreads(numThread)
-                    .build()
-            val modelFile = MODEL_MOVINET_A1_FILE
-
-            videoClassifier = VideoClassifier.createFromFileAndLabelsAndOptions(
-                this,
-                modelFile,
-                MODEL_LABEL_FILE,
-                options
-            )
-
-            Log.d(TAG, "Classifier created.")
-        }
-    }
-     */
-
-    private fun createClassifier() {
-        synchronized(lock) {
-            if (handClassifier != null) {
-                handClassifier?.close()
-                handClassifier = null
+            if (handGestureClassifier != null) {
+                handGestureClassifier?.close()
+                handGestureClassifier = null
             }
 
-            handClassifier = HandClassifier.createHandClassifier(
-                this
+            handGestureClassifier = HandGestureClassifier.createHandGestureClassifier(
+                this, "numbers_model.tflite", "numbers_labels.txt"
             )
 
             Log.d(TAG, "Classifier created.")
@@ -581,7 +550,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private const val TAG = "TFLite-VidClassify"
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
-        private const val MODEL_FPS = 5 // Ensure the input images are fed to the model at this fps.
+        private const val MODEL_FPS = 16 // Ensure the input images are fed to the model at this fps.
         private const val MODEL_FPS_ERROR_RANGE = 0.1 // Acceptable error range in fps.
         private const val MAX_CAPTURE_FPS = 20
         private const val SCORE_THRESHOLD = 0.30 // Min score to assume inference is correct
@@ -589,7 +558,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        handClassifier?.close()
+        handGestureClassifier?.close()
         executor.shutdown()
 
         if (tts != null) {

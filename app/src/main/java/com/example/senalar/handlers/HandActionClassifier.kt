@@ -6,44 +6,41 @@ import com.google.mediapipe.solutions.hands.HandsResult
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.label.Category
+import java.util.*
 import kotlin.math.max
 
-class HandClassifier private constructor(
+class HandActionClassifier private constructor(
     private val interpreter: Interpreter,
     private val labels: List<String>,
     private val maxResults: Int?
 ) {
-    private val inputShape = interpreter
-        .getInputTensor(0)
-        .shape()
-    private val outputCategoryCount = interpreter
-        .getOutputTensor(0)
-        .shape()[1]
+    var frameCount = 0
+    var frameQueue = LinkedList<FloatArray>()
 
     companion object {
-        private const val ACCURACY_THRESHOLD = 0.7f
-        private const val MODEL_PATH = "numbers_model.tflite"
-        private const val LABELS_PATH = "numbers_labels.txt"
         private const val NUM_THREADS = 1
         private const val MAX_OPTIONS = 3
+        private const val HAND_LANDMARKS_SIZE = 21
+        private const val AXIS_LANDMARKS_SIZE = 2
+        private const val MODEL_FPS = 16
 
-        fun createHandClassifier(context: Context): HandClassifier {
+        fun createHandActionClassifier(context: Context, model_path: String, labels_path: String): HandActionClassifier {
             // Create a TFLite interpreter from the TFLite model file.
             val interpreterOptions = Interpreter.Options()
             interpreterOptions.setNumThreads(NUM_THREADS)
             val interpreter =
-                Interpreter(FileUtil.loadMappedFile(context, MODEL_PATH))
+                Interpreter(FileUtil.loadMappedFile(context, model_path))
 
             // Load the label file.
-            val labels = FileUtil.loadLabels(context, LABELS_PATH)
+            val labels = FileUtil.loadLabels(context, labels_path)
 
-            return HandClassifier(interpreter, labels, MAX_OPTIONS)
+            return HandActionClassifier(interpreter, labels, MAX_OPTIONS)
         }
     }
 
     fun classify(handsResult: HandsResult): List<Category> {
-        var leftHandLandmarks : FloatArray = FloatArray(42)
-        var rightHandLandmarks : FloatArray = FloatArray(42)
+        var leftHandLandmarks : FloatArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
+        var rightHandLandmarks : FloatArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
 
         val numHands =  handsResult.multiHandLandmarks().size
 
@@ -59,19 +56,53 @@ class HandClassifier private constructor(
             indexHands++
         }
 
-        var uniArrayLandmarks = getFinalUniArray(leftHandLandmarks, rightHandLandmarks)
+        val uniArrayLandmarks = getFinalUniArray(leftHandLandmarks, rightHandLandmarks)
+
+        frameQueue.add(uniArrayLandmarks)
+
+        if (frameQueue.size < MODEL_FPS) {
+            val dummyCategories = mutableListOf<Category>()
+            dummyCategories.add(Category("None1", 0.0f))
+            dummyCategories.add(Category("None2", 0.0f))
+            dummyCategories.add(Category("None3", 0.0f))
+            return dummyCategories
+        }
+
+        if (frameQueue.size > MODEL_FPS) {
+            frameQueue.poll()
+        }
+
+        val framesUniArrayLandmarks = getFramesFinalUniArray(frameQueue)
 
         val outputval = Array(1) {
             FloatArray(
-                22
+                labels.size
             )
         }
 
-        interpreter.run(uniArrayLandmarks, outputval)
+        interpreter.run(framesUniArrayLandmarks, outputval)
 
         val categoryList = createCategoryList(outputval.get(0))
 
         return categoryList
+    }
+
+    private fun getFramesFinalUniArray(frameQueue: LinkedList<FloatArray>): FloatArray {
+        val frameArrayLandmarks = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE * 2 * MODEL_FPS)
+
+        var frameIndex = 0
+        var totalIndex = 0
+
+        frameQueue.forEach {
+            while (frameIndex < it.size) {
+                frameArrayLandmarks[totalIndex] = it[frameIndex]
+                frameIndex++
+                totalIndex++
+            }
+            frameIndex = 0
+        }
+
+        return frameArrayLandmarks
     }
 
     private fun createCategoryList(outputsInFloat: FloatArray): List<Category> {
@@ -93,18 +124,18 @@ class HandClassifier private constructor(
         leftHandLandmarks: FloatArray,
         rightHandLandmarks: FloatArray
     ): FloatArray {
-        val uniArrayLandmarks = FloatArray(84)
+        val uniArrayLandmarks = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE * 2)
 
         var handIndex = 0
         var totalIndex = 0
 
-        while (handIndex < 42) {
+        while (handIndex < HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE) {
             uniArrayLandmarks[totalIndex++] = leftHandLandmarks[handIndex++]
         }
 
         handIndex = 0
 
-        while (handIndex < 42) {
+        while (handIndex < HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE) {
             uniArrayLandmarks[totalIndex++] = rightHandLandmarks[handIndex++]
         }
 
@@ -112,7 +143,7 @@ class HandClassifier private constructor(
     }
 
     private fun getLandMarksAsUniArray(landmarks: List<LandmarkProto.NormalizedLandmark>) : FloatArray {
-        val uniArray = FloatArray(42)
+        val uniArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
         var indexArray = 0
 
         for (landmark in landmarks) {
