@@ -31,6 +31,7 @@ import com.example.senalar.connection.ClientPC
 import com.example.senalar.databinding.ActivityCameraBinding
 import com.example.senalar.databinding.CameraUiContainerBinding
 import com.example.senalar.handlers.CalculateUtils
+import com.example.senalar.handlers.HandActionClassifier
 import com.example.senalar.handlers.HandGestureClassifier
 import com.example.senalar.helpers.PreferencesHelper
 import com.example.senalar.helpers.PreferencesHelper.Companion.SOUND_ON_PREF
@@ -57,7 +58,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private val lock = Any()
     private lateinit var executor: ExecutorService
     //private var videoClassifier: VideoClassifier? = null
-    private var handGestureClassifier: HandGestureClassifier? = null
+    private var handGestureClassifier: HandActionClassifier? = null
 
     private var lastInferenceStartTime: Long = 0
     private var numThread = 4
@@ -499,8 +500,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 handGestureClassifier = null
             }
 
-            handGestureClassifier = HandGestureClassifier.createHandGestureClassifier(
-                this, "numbers_model.tflite", "numbers_labels.txt"
+            handGestureClassifier = HandActionClassifier.createHandActionClassifier(
+                this, "point_history_classifier.tflite", "point_history_classifier_labels.txt"
             )
 
             Log.d(TAG, "Classifier created.")
@@ -553,7 +554,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val MODEL_FPS = 16 // Ensure the input images are fed to the model at this fps.
         private const val MODEL_FPS_ERROR_RANGE = 0.1 // Acceptable error range in fps.
         private const val MAX_CAPTURE_FPS = 20
-        private const val SCORE_THRESHOLD = 0.30 // Min score to assume inference is correct
+        private const val SCORE_THRESHOLD = 0.50 // Min score to assume inference is correct
     }
 
     override fun onDestroy() {
