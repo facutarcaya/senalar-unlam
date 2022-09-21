@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.example.senalar.databinding.ActivityMainBinding
-import com.google.android.gms.ads.MobileAds
 
 @androidx.camera.core.ExperimentalGetImage
 class MainActivity : AppCompatActivity() {
@@ -14,7 +13,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        //MobileAds.initialize(this) {}
 
         // We hide the logo and app title to animate it later
         binding.ivLogoSenalar.alpha = ALPHA_MINIMUM

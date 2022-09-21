@@ -43,7 +43,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="92dp"
+        android:layout_marginBottom="16dp"
         android:padding="8dp"
         android:text="@string/start_translate"
         android:textAlignment="center"
@@ -52,7 +52,7 @@
         app:iconGravity="textEnd"
         app:iconPadding="32sp"
         app:iconSize="64dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/adView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent" />
@@ -69,9 +69,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cameraButton"
-        app:layout_constraintVertical_bias="0.0"
-        tools:ignore="MissingConstraints"></com.google.android.gms.ads.AdView>
+        app:layout_constraintVertical_bias="0.0" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -98,6 +96,16 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnHowDoesItWork"
+            style="@style/Widget.Material3.Button.ElevatedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="@string/how_it_works"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnChooseLanguage"
             style="@style/Widget.Material3.Button.ElevatedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
