@@ -13,11 +13,21 @@ class PreferencesHelper(context: Context) {
         sharedPreferences.edit().putBoolean(preferenceName, value).apply()
     }
 
+    fun getStringPreference(preferenceName: String): String? {
+        return sharedPreferences.getString(preferenceName, null)
+    }
+
+    fun setStringPreference(preferenceName: String, value: String) {
+        sharedPreferences.edit().putString(preferenceName, value).apply()
+    }
+
     companion object {
         // General
         const val SHARED_PREF_NAME = "SENALAR_PREFERENCES"
 
         // Individual Preferences
         const val SOUND_ON_PREF = "SOUND_ON_PREF"
+        const val LANGUAGE_TRANSLATION = "LANG_TRANSLATION"
+        const val COUNTRY_TRANSLATION = "COUNTRY_TRANSLATION"
     }
 }
