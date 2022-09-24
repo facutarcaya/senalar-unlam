@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/main_light_blue"
     tools:context=".HomeActivity">
 
     <LinearLayout
@@ -32,13 +33,15 @@
             android:gravity="center"
             android:text="@string/app_title"
             android:textAlignment="center"
-            android:textColor="@color/teal_200"
-            android:textSize="34sp" />
+            android:textColor="@color/contrast_light_blue"
+            android:textSize="40sp" />
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/cameraButton"
         style="@style/Widget.Material3.Button.Icon"
+        android:backgroundTint="@color/contrast_light_blue"
+        android:textColor="@color/main_light_blue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -52,6 +55,7 @@
         app:iconGravity="textEnd"
         app:iconPadding="32sp"
         app:iconSize="64dp"
+        app:iconTint="@color/main_light_blue"
         app:layout_constraintBottom_toTopOf="@+id/adView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -87,6 +91,8 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnHowToUse"
             style="@style/Widget.Material3.Button.ElevatedButton"
+            android:backgroundTint="@color/contrast_light_blue"
+            android:textColor="@color/main_light_blue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -97,6 +103,8 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnHowDoesItWork"
             style="@style/Widget.Material3.Button.ElevatedButton"
+            android:backgroundTint="@color/contrast_light_blue"
+            android:textColor="@color/main_light_blue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -107,6 +115,8 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnChooseLanguage"
             style="@style/Widget.Material3.Button.ElevatedButton"
+            android:backgroundTint="@color/contrast_light_blue"
+            android:textColor="@color/main_light_blue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
