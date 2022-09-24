@@ -14,7 +14,7 @@ class HandGestureClassifier private constructor(
     private val maxResults: Int?
 ) : HandClassifier {
     companion object {
-        private const val NUM_THREADS = 1
+        private const val NUM_THREADS = 4
         private const val MAX_OPTIONS = 3
         private const val HAND_LANDMARKS_SIZE = 21
         private const val AXIS_LANDMARKS_SIZE = 2
