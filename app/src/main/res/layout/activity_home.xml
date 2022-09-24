@@ -92,7 +92,7 @@
             android:layout_margin="8dp"
             android:text="@string/how_to_use"
             android:textSize="16sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnHowDoesItWork"
@@ -110,7 +110,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
-            android:text="@string/how_it_works"
+            android:text="@string/choose_language"
             android:textSize="16sp"
             android:textStyle="bold" />
     </LinearLayout>

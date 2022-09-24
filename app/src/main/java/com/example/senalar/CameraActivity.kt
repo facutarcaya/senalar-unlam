@@ -66,7 +66,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var handNumbersClassifier: HandGestureClassifier? = null
     private var handLettersClassifier: HandGestureClassifier? = null
     private var isActionDetection = true
-    private var scoreThreshold = 0.50 // Min score to assume inference is correct
+    private var scoreThreshold = 0.40 // Min score to assume inference is correct
 
     private var lastInferenceStartTime: Long = 0
 
@@ -95,6 +95,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     //TTS variables
     private var tts : TextToSpeech? = null
+    private lateinit var languageTranslation : String
+    private lateinit var countryTranslation : String
     private lateinit var language : Locale
 
     //Preferences variables
@@ -146,14 +148,16 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun initializeLanguage() {
-        val languageTranslation = preferencesHelper.getStringPreference(PreferencesHelper.LANGUAGE_TRANSLATION)
-        val countryTranslation = preferencesHelper.getStringPreference(PreferencesHelper.COUNTRY_TRANSLATION)
-
-        language = if (languageTranslation != null && countryTranslation != null) {
-            Locale(languageTranslation, countryTranslation)
-        } else {
-            Locale(LanguageHelper.DEFAULT_LANGUAGE, LanguageHelper.DEFAULT_COUNTRY)
+        languageTranslation = LanguageHelper.DEFAULT_LANGUAGE
+        countryTranslation = LanguageHelper.DEFAULT_COUNTRY
+        preferencesHelper.getStringPreference(PreferencesHelper.LANGUAGE_TRANSLATION)?.let {
+            languageTranslation = it
         }
+        preferencesHelper.getStringPreference(PreferencesHelper.COUNTRY_TRANSLATION)?.let {
+            countryTranslation = it
+        }
+
+        language = Locale(languageTranslation, countryTranslation)
     }
 
     private fun initializeHandsDetector() {
@@ -217,7 +221,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         cameraUiContainerBinding.btnWords.setOnClickListener {
             handClassifier = handWordsClassifier
             isActionDetection = true
-            scoreThreshold = 0.50
+            scoreThreshold = 0.40
         }
     }
 
@@ -562,7 +566,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             handWordsClassifier = HandActionClassifier.createHandActionClassifier(
-                this, "words_model.tflite", "words_labels.txt"
+                this, "words_model.tflite", "words_labels_${languageTranslation}.txt"
             )
 
             Log.d(TAG, "Words Classifier created.")
