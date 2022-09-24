@@ -209,13 +209,13 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         cameraUiContainerBinding.btnNumbers.setOnClickListener {
             handClassifier = handNumbersClassifier
             isActionDetection = false
-            scoreThreshold = 0.30
+            scoreThreshold = 0.25
         }
 
         cameraUiContainerBinding.btnLetters.setOnClickListener {
             handClassifier = handLettersClassifier
             isActionDetection = false
-            scoreThreshold = 0.30
+            scoreThreshold = 0.25
         }
 
         cameraUiContainerBinding.btnWords.setOnClickListener {
@@ -451,26 +451,18 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     val newWordScore = results[0].score
 
                     if (!muteOn && newWord != lastResult && newWordScore >= scoreThreshold) {
-                        if (isActionDetection) {
-                            if (newWord != actionLastResult) {
-                                detectionCount = 0
-                                actionLastResult = newWord
-                            } else {
-                                detectionCount++
-                                if (detectionCount >= MIN_DETECTION_ACTION) {
-                                    addWordToSubtitle(newWord)
-                                    speakThroughTTS(newWord)
-                                    sendToPC(newWord)
-                                    lastResult = newWord
-                                    detectionCount = 0
-                                }
-                            }
+                        if (newWord != actionLastResult) {
+                            detectionCount = 0
+                            actionLastResult = newWord
                         } else {
-                            addWordToSubtitle(newWord)
-                            speakThroughTTS(newWord)
-                            sendToPC(newWord)
-                            lastResult = newWord
-
+                            detectionCount++
+                            if (detectionCount >= MIN_DETECTION_ACTION) {
+                                addWordToSubtitle(newWord)
+                                speakThroughTTS(newWord)
+                                sendToPC(newWord)
+                                lastResult = newWord
+                                detectionCount = 0
+                            }
                         }
                     }
 
