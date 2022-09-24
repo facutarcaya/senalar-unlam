@@ -38,7 +38,8 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun initializeButtons() {
-        val inflater = layoutInflater
+        updateLanguageSelected()
+
         binding.btnHowToUse.setOnClickListener {
             // Aca se debería abrir un (full screen dialog? o modal?) explicando como se usa
             // https://m3.material.io/components/dialogs/overview
@@ -93,7 +94,22 @@ class HomeActivity : AppCompatActivity() {
                 .setPositiveButton(resources.getString(R.string.accept)) { dialog, which ->
                     preferencesHelper.setStringPreference(PreferencesHelper.LANGUAGE_TRANSLATION, selectedLanguageTranslation)
                     preferencesHelper.setStringPreference(PreferencesHelper.COUNTRY_TRANSLATION, selectedLanguageCountry)
+                    updateLanguageSelected()
                 }.show()
         }
+    }
+
+    private fun updateLanguageSelected() {
+        val languageName = when (preferencesHelper.getStringPreference(PreferencesHelper.LANGUAGE_TRANSLATION)) {
+            LanguageHelper.ENGLISH_LANGUAGE -> {
+                LanguageHelper.ENGLISH_NAME
+            }
+            LanguageHelper.PORTUGUESE_LANGUAGE -> {
+                LanguageHelper.PORTUGUESE_NAME
+            }
+            else -> {LanguageHelper.SPANISH_NAME}
+        }
+        binding.btnChooseLanguage.text = "${resources.getString(R.string.choose_language)}: ${languageName}"
+
     }
 }

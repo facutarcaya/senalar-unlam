@@ -83,8 +83,6 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // Mute variables
     private var muteOn = true
-    private val COLOR_OFF = "#D34A4A"
-    private val COLOR_ON = "#30E334"
     private var soundOn = true
 
     // Subtitles variables
@@ -209,13 +207,13 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         cameraUiContainerBinding.btnNumbers.setOnClickListener {
             handClassifier = handNumbersClassifier
             isActionDetection = false
-            scoreThreshold = 0.30
+            scoreThreshold = 0.25
         }
 
         cameraUiContainerBinding.btnLetters.setOnClickListener {
             handClassifier = handLettersClassifier
             isActionDetection = false
-            scoreThreshold = 0.30
+            scoreThreshold = 0.25
         }
 
         cameraUiContainerBinding.btnWords.setOnClickListener {
@@ -284,13 +282,13 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun initializeMuteButton() {
         cameraUiContainerBinding.btnSwitchMute.setOnClickListener {
             if (muteOn) {
-                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_play_circle_outline_24), COLOR_ON)
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_play_circle_outline_24), null)
                 muteOn = false
             } else {
                 // We restart the last word, since the user decided to stop the inference
                 lastResult = ""
 
-                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_pause_circle_outline_24), COLOR_OFF)
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_pause_circle_outline_24), null)
                 muteOn = true
             }
         }
@@ -451,26 +449,18 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     val newWordScore = results[0].score
 
                     if (!muteOn && newWord != lastResult && newWordScore >= scoreThreshold) {
-                        if (isActionDetection) {
-                            if (newWord != actionLastResult) {
-                                detectionCount = 0
-                                actionLastResult = newWord
-                            } else {
-                                detectionCount++
-                                if (detectionCount >= MIN_DETECTION_ACTION) {
-                                    addWordToSubtitle(newWord)
-                                    speakThroughTTS(newWord)
-                                    sendToPC(newWord)
-                                    lastResult = newWord
-                                    detectionCount = 0
-                                }
-                            }
+                        if (newWord != actionLastResult) {
+                            detectionCount = 0
+                            actionLastResult = newWord
                         } else {
-                            addWordToSubtitle(newWord)
-                            speakThroughTTS(newWord)
-                            sendToPC(newWord)
-                            lastResult = newWord
-
+                            detectionCount++
+                            if (detectionCount >= MIN_DETECTION_ACTION) {
+                                addWordToSubtitle(newWord)
+                                speakThroughTTS(newWord)
+                                sendToPC(newWord)
+                                lastResult = newWord
+                                detectionCount = 0
+                            }
                         }
                     }
 

@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/main_light_blue"
     tools:context=".MainActivity">
 
     <ImageView
@@ -37,12 +38,12 @@
             android:id="@+id/tVAppTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-black"
+            android:fontFamily="@font/baloo_thambi"
             android:gravity="center"
             android:text="@string/app_title"
             android:textAlignment="center"
-            android:textColor="@color/teal_200"
-            android:textSize="34sp" />
+            android:textColor="@color/contrast_light_blue"
+            android:textSize="60sp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

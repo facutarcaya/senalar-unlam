@@ -17,8 +17,7 @@
         app:iconTint="#FFFFFF"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_margin="16dp"
-        app:tint="#FFFFFF" />
+        android:layout_margin="16dp"/>
 
     <ImageButton
         android:id="@+id/btnSwitchFlash"
@@ -30,8 +29,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_margin="16dp"
-        app:tint="#FFFFFF" />
+        android:layout_margin="16dp"/>
 
     <ImageButton
         android:id="@+id/btnSwitchVolume"
@@ -46,8 +44,7 @@
         app:iconTint="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/ic_baseline_volume_up_24"
-        app:tint="#FFFFFF" />
+        app:srcCompat="@drawable/ic_baseline_volume_up_24"/>
 
     <TextView
         android:id="@+id/tvSubtitles"
@@ -85,16 +82,15 @@
 
     <ImageButton
         android:id="@+id/btnSwitchMute"
-        android:layout_width="84dp"
-        android:layout_height="84dp"
+        android:layout_width="88dp"
+        android:layout_height="88dp"
         android:layout_margin="40dp"
         android:background="@android:color/transparent"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@drawable/ic_baseline_pause_circle_outline_24"
-        app:tint="#D34A4A" />
+        app:srcCompat="@drawable/ic_baseline_pause_circle_outline_24"/>
 
     <ImageButton
         android:id="@+id/btnCastToPC"
@@ -110,8 +106,7 @@
         app:iconTint="#FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_baseline_cast_24"
-        app:tint="#FFFFFF" />
+        app:srcCompat="@drawable/ic_baseline_cast_24"/>
 
     <com.google.android.material.button.MaterialButtonToggleGroup
         android:id="@+id/toggleButton"
@@ -121,6 +116,7 @@
         app:layout_constraintBottom_toTopOf="@+id/btnSwitchMute"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:layout_margin="16dp"
         android:gravity="center"
         app:singleSelection="true"
         app:selectionRequired="true"
@@ -129,29 +125,32 @@
         <Button
             android:id="@+id/btnNumbers"
             style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="115dp"
+            android:backgroundTint="@color/contrast_light_blue"
+            android:textColor="@color/main_light_blue"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:text="Números" />
+            android:textAllCaps="false"
+            android:text="123" />
 
         <Button
             android:id="@+id/btnLetters"
             style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="115dp"
+            android:backgroundTint="@color/contrast_light_blue"
+            android:textColor="@color/main_light_blue"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:text="Letras" />
+            android:textAllCaps="false"
+            android:text="A-Z" />
 
         <Button
             android:id="@+id/btnWords"
             style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="115dp"
+            android:backgroundTint="@color/contrast_light_blue"
+            android:textColor="@color/main_light_blue"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:text="Palabras" />
+            android:textAllCaps="false"
+            android:text="Pal" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <LinearLayout

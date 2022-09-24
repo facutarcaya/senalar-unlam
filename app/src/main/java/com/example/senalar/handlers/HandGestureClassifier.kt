@@ -39,6 +39,14 @@ class HandGestureClassifier private constructor(
 
         val numHands =  handsResult.multiHandLandmarks().size
 
+        if (numHands == 0) {
+            val dummyCategories = mutableListOf<Category>()
+            dummyCategories.add(Category("None1", 0.0f))
+            dummyCategories.add(Category("None2", 0.0f))
+            dummyCategories.add(Category("None3", 0.0f))
+            return dummyCategories
+        }
+
         var indexHands = 0
 
         while (indexHands < numHands) {
