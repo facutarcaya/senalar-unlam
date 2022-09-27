@@ -35,8 +35,11 @@ import com.example.senalar.handlers.HandActionClassifier
 import com.example.senalar.handlers.HandClassifier
 import com.example.senalar.handlers.HandGestureClassifier
 import com.example.senalar.helpers.LanguageHelper
+import com.example.senalar.helpers.Predictions
 import com.example.senalar.helpers.PreferencesHelper
 import com.example.senalar.helpers.PreferencesHelper.Companion.SOUND_ON_PREF
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.google.mediapipe.solutions.hands.Hands
 import com.google.mediapipe.solutions.hands.HandsOptions
 import com.google.mediapipe.solutions.hands.HandsResult
@@ -67,6 +70,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var handLettersClassifier: HandGestureClassifier? = null
     private var isActionDetection = true
     private var scoreThreshold = 0.40 // Min score to assume inference is correct
+    private var modelFps = 16 // Model FPS
 
     private var lastInferenceStartTime: Long = 0
 
@@ -91,21 +95,24 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var thirdLine = mutableListOf<String>()
     private var text : String = ""
 
-    //TTS variables
+    // TTS variables
     private var tts : TextToSpeech? = null
     private lateinit var languageTranslation : String
     private lateinit var countryTranslation : String
     private lateinit var language : Locale
 
-    //Preferences variables
+    // Preferences variables
     private lateinit var preferencesHelper: PreferencesHelper
 
-    //Mediapipe variables
+    // Mediapipe variables
     private lateinit var hands: Hands
 
     //Server variables
     private var clientPC: ClientPC? = null
     private var connectedToPc = false
+
+    // Predictions variables
+    private lateinit var predictionsFile: Predictions
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityCameraBinding.inflate(layoutInflater)
@@ -120,6 +127,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Initialize the TTS
         tts = TextToSpeech(this, this)
+
+        loadPredictionsFile()
 
         // Initialize Hand Detection
         initializeHandsDetector()
@@ -143,6 +152,20 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
 
         initializeButtons()
+    }
+
+    private fun loadPredictionsFile() {
+        lateinit var jsonString: String
+        try {
+            jsonString = this.assets.open("predictions.json")
+                .bufferedReader()
+                .use { it.readText() }
+
+            val predictionsType = object : TypeToken<Predictions>() {}.type
+            predictionsFile = Gson().fromJson(jsonString, predictionsType)
+        } catch (e: Exception) {
+            predictionsFile = Predictions()
+        }
     }
 
     private fun initializeLanguage() {
@@ -208,18 +231,21 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             handClassifier = handNumbersClassifier
             isActionDetection = false
             scoreThreshold = 0.25
+            modelFps = 5
         }
 
         cameraUiContainerBinding.btnLetters.setOnClickListener {
             handClassifier = handLettersClassifier
             isActionDetection = false
             scoreThreshold = 0.25
+            modelFps = 5
         }
 
         cameraUiContainerBinding.btnWords.setOnClickListener {
             handClassifier = handWordsClassifier
             isActionDetection = true
             scoreThreshold = 0.40
+            modelFps = 16
         }
     }
 
@@ -360,8 +386,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 // and feed them to the TFLite model. We set the capturing frame rate to a multiply
                 // of the TFLite model's desired FPS to keep the preview smooth, then drop
                 // unnecessary frames during image analysis.
-                val targetFpsMultiplier = MAX_CAPTURE_FPS.div(MODEL_FPS)
-                val targetCaptureFps = MODEL_FPS * targetFpsMultiplier
+                val targetFpsMultiplier = MAX_CAPTURE_FPS.div(modelFps)
+                val targetCaptureFps = modelFps * targetFpsMultiplier
                 val builder = ImageAnalysis.Builder()
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 val extender: Camera2Interop.Extender<*> = Camera2Interop.Extender(builder)
@@ -432,7 +458,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // Check to ensure that we only run inference at a frequency required by the
             // model, within an acceptable error range (e.g. 10%). Discard the frames
             // that comes too early.
-            if (diff * MODEL_FPS >= 1000 /* milliseconds */ * (1 - MODEL_FPS_ERROR_RANGE)) {
+            if (diff * modelFps >= 1000 /* milliseconds */ * (1 - MODEL_FPS_ERROR_RANGE)) {
 
                 lastInferenceStartTime = currentTime
 
@@ -455,26 +481,49 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         } else {
                             detectionCount++
                             if (detectionCount >= MIN_DETECTION_ACTION) {
-                                addWordToSubtitle(newWord)
-                                speakThroughTTS(newWord)
-                                sendToPC(newWord)
+                                processWord(lastResult, newWord)
                                 lastResult = newWord
                                 detectionCount = 0
                             }
                         }
                     }
 
-                    if (inputFps < MODEL_FPS * (1 - MODEL_FPS_ERROR_RANGE)) {
+                    if (inputFps < modelFps * (1 - MODEL_FPS_ERROR_RANGE)) {
                         Log.w(
                             TAG, "Current input FPS ($inputFps) is " +
                                     "significantly lower than the TFLite model's " +
-                                    "expected FPS ($MODEL_FPS). It's likely because " +
+                                    "expected FPS ($modelFps). It's likely because " +
                                     "model inference takes too long on this device."
                         )
                     }
                 }
             }
         }
+    }
+
+    private fun processWord(lastWord: String, newWord: String) {
+        val replacedWord = searchForPredictions(lastWord, newWord)
+        addWordToSubtitle(replacedWord)
+        speakThroughTTS(replacedWord)
+        sendToPC(replacedWord)
+    }
+
+    private fun searchForPredictions(lastWord: String, newWord: String): String {
+        predictionsFile.predictions?.let { predictionsMap ->
+            predictionsMap[lastWord.lowercase()]?.let { lastWordMap ->
+                lastWordMap[newWord.lowercase()]?.let {
+                    return it
+                }
+            }
+        }
+
+        predictionsFile.replacements?.let { replacementsMap ->
+            replacementsMap[newWord.lowercase()]?.let {
+                return it
+            }
+        }
+
+        return newWord
     }
 
     private fun sanitizeNewWord(word: String): String {
@@ -635,7 +684,6 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private const val TAG = "TFLite-VidClassify"
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
-        private const val MODEL_FPS = 16 // Ensure the input images are fed to the model at this fps.
         private const val MODEL_FPS_ERROR_RANGE = 0.1 // Acceptable error range in fps.
         private const val MAX_CAPTURE_FPS = 20
         private const val MIN_DETECTION_ACTION = 10

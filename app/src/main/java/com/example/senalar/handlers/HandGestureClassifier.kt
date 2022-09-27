@@ -2,6 +2,7 @@ package com.example.senalar.handlers
 
 import android.content.Context
 import com.google.mediapipe.formats.proto.LandmarkProto
+import com.google.mediapipe.solutions.hands.HandLandmark
 import com.google.mediapipe.solutions.hands.HandsResult
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.common.FileUtil
@@ -47,19 +48,11 @@ class HandGestureClassifier private constructor(
             return dummyCategories
         }
 
-        var indexHands = 0
+        val indexHands = 0
 
-        while (indexHands < numHands) {
-            if (handsResult.multiHandedness()[indexHands].label == "Left") {
-                leftHandLandmarks = getLandMarksAsUniArray(handsResult.multiHandLandmarks()[indexHands].landmarkList)
-            } else {
-                rightHandLandmarks = getLandMarksAsUniArray(handsResult.multiHandLandmarks()[indexHands].landmarkList)
-            }
+        leftHandLandmarks = getLandMarksAsUniArray(handsResult.multiHandLandmarks()[indexHands].landmarkList, false)
+        rightHandLandmarks = getLandMarksAsUniArray(handsResult.multiHandLandmarks()[indexHands].landmarkList, true)
 
-            indexHands++
-        }
-
-        var uniArrayLandmarks = getFinalUniArray(leftHandLandmarks, rightHandLandmarks)
 
         val outputval = Array(1) {
             FloatArray(
@@ -67,11 +60,15 @@ class HandGestureClassifier private constructor(
             )
         }
 
-        interpreter.run(uniArrayLandmarks, outputval)
+        interpreter.run(leftHandLandmarks, outputval)
 
-        val categoryList = createCategoryList(outputval.get(0))
+        val categoryList1 = createCategoryList(outputval[0])
 
-        return categoryList
+        interpreter.run(rightHandLandmarks, outputval)
+
+        val categoryList2 = createCategoryList(outputval[0])
+
+        return if (categoryList1[0].score > categoryList2[0].score) categoryList1 else categoryList2
     }
 
     private fun createCategoryList(outputsInFloat: FloatArray): List<Category> {
@@ -111,18 +108,22 @@ class HandGestureClassifier private constructor(
         return uniArrayLandmarks
     }
 
-    private fun getLandMarksAsUniArray(landmarks: List<LandmarkProto.NormalizedLandmark>) : FloatArray {
+    private fun getLandMarksAsUniArray(landmarks: List<LandmarkProto.NormalizedLandmark>, flipLandmark: Boolean) : FloatArray {
         val uniArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
         var indexArray = 0
 
         for (landmark in landmarks) {
-            uniArray[indexArray] = landmark.x
+            uniArray[indexArray] = if (flipLandmark) flipLandmarkPoint(landmark.x) else landmark.x
             indexArray++
             uniArray[indexArray] = landmark.y
             indexArray++
         }
 
         return uniArray
+    }
+
+    private fun flipLandmarkPoint(landMarkPoint: Float): Float {
+        return 1.0f - landMarkPoint
     }
 
     override fun close() {
