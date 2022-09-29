@@ -3,6 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/ArianaCarcaba/Documents/GitHub/senalar-unlam/app/src/main/res/layout/activity_camera.xml" value="0.17481884057971014" />
+        <entry key="..\:/Users/ArianaCarcaba/Documents/GitHub/senalar-unlam/app/src/main/res/layout/activity_google_login.xml" value="0.17481884057971014" />
+        <entry key="..\:/Users/ArianaCarcaba/Documents/GitHub/senalar-unlam/app/src/main/res/layout/activity_home.xml" value="0.17481884057971014" />
+        <entry key="..\:/Users/ArianaCarcaba/Documents/GitHub/senalar-unlam/app/src/main/res/layout/camera_ui_container.xml" value="0.15760869565217392" />
         <entry key="..\:/Users/facut/Documents/GitHub/senalar-unlam/app/src/main/res/drawable/alert_dialog_with_edittext.xml" value="0.1675" />
         <entry key="..\:/Users/facut/Documents/GitHub/senalar-unlam/app/src/main/res/drawable/ic_baseline_cast_24.xml" value="0.189" />
         <entry key="..\:/Users/facut/Documents/GitHub/senalar-unlam/app/src/main/res/drawable/ic_baseline_flash_off_24.xml" value="0.189" />

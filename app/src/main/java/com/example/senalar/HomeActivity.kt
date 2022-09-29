@@ -54,6 +54,10 @@ class HomeActivity : AppCompatActivity() {
             startActivity(Intent(this, CameraActivity::class.java))
         }
 
+        binding.button.setOnClickListener {
+            startActivity(Intent(this, GoogleLoginActivity::class.java))
+        }
+
         binding.btnChooseLanguage.setOnClickListener {
             val items = arrayOf(LanguageHelper.SPANISH_NAME, LanguageHelper.ENGLISH_NAME, LanguageHelper.PORTUGUESE_NAME)
 

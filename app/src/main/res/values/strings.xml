@@ -12,4 +12,10 @@
     <string name="lang_spanish">Español</string>
     <string name="lang_english">English</string>
     <string name="lang_portuguese">Portuguese</string>
+    <string name="google_singIn">Sing In</string>
+    <string name="google_singOut">Sing Out</string>
+    <string name="google_signed_out">Singed Out</string>
+    <string name="google_disconnect">Disconnect</string>
+
+
 </resources>
