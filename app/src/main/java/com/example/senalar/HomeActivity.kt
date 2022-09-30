@@ -40,6 +40,10 @@ class HomeActivity : AppCompatActivity() {
     private fun initializeButtons() {
         updateLanguageSelected()
 
+        binding.btnUserLogin.setOnClickListener {
+            startActivity(Intent(this, StartLoginActivity::class.java))
+        }
+
         binding.btnHowToUse.setOnClickListener {
             // Aca se debería abrir un (full screen dialog? o modal?) explicando como se usa
             // https://m3.material.io/components/dialogs/overview
