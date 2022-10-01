@@ -7,6 +7,15 @@
     android:background="@color/main_light_blue"
     tools:context=".HomeActivity">
 
+    <ImageView
+        android:id="@+id/btnUserLogin"
+        android:src="@drawable/ic_baseline_person_outline_24"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/linearLayout"/>
+
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="wrap_content"
@@ -124,15 +133,4 @@
             android:textSize="16sp"
             android:textStyle="bold" />
     </LinearLayout>
-
-    <ImageButton
-        android:id="@+id/btnUserLogin"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_marginEnd="16dp"
-        android:background="@android:color/transparent"
-        android:scaleType="fitCenter"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/linearLayout"
-        app:srcCompat="@drawable/ic_baseline_person_outline_24" />
 </androidx.constraintlayout.widget.ConstraintLayout>
