@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "481251153805",
+    "project_id": "senalar-unlam",
+    "storage_bucket": "senalar-unlam.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:481251153805:android:0553191a82a360f1220fc4",
+        "android_client_info": {
+          "package_name": "com.unlam.senalar"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "481251153805-ns6h8saln5qnhie768gnrs4cb2r0i2rd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.unlam.senalar",
+            "certificate_hash": "00860e823369c4064966609654345b09176c1a8c"
+          }
+        },
+        {
+          "client_id": "481251153805-sjr3mpka5p9egd61ijrj35jpfb8hcq06.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwIhDq0qLlkbb-dQWByOARt0gqQaQpYVc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "481251153805-sjr3mpka5p9egd61ijrj35jpfb8hcq06.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
