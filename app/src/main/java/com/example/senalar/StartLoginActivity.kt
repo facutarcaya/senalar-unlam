@@ -39,6 +39,10 @@ class StartLoginActivity : AppCompatActivity() {
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
         auth = Firebase.auth
+
+        binding.btnClose.setOnClickListener {
+            this.finish()
+        }
     }
 
     override fun onStart() {

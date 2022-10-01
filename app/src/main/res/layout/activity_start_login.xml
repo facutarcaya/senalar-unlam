@@ -26,6 +26,15 @@
         app:layout_constraintTop_toTopOf="@+id/view"
         tools:layout_editor_absoluteX="30dp">
 
+        <ImageView
+            android:id="@+id/btnClose"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="end"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="20dp"
+            android:src="@drawable/ic_baseline_close_24"/>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"

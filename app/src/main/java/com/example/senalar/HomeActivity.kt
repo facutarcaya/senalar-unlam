@@ -69,6 +69,7 @@ class HomeActivity : AppCompatActivity() {
         binding.btnHowToUse.setOnClickListener {
             // Aca se debería abrir un (full screen dialog? o modal?) explicando como se usa
             // https://m3.material.io/components/dialogs/overview
+            startActivity(Intent(this, HowToUseActivity::class.java))
         }
 
         binding.btnHowDoesItWork.setOnClickListener {
