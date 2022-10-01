@@ -11,11 +11,15 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 @androidx.camera.core.ExperimentalGetImage
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding : ActivityHomeBinding
     lateinit var mAdView : AdView
+    private lateinit var auth: FirebaseAuth
 
     //Preferences variables
     private lateinit var preferencesHelper: PreferencesHelper
@@ -28,6 +32,8 @@ class HomeActivity : AppCompatActivity() {
         // Initialize preferences
         preferencesHelper = PreferencesHelper(this.applicationContext)
 
+        auth = Firebase.auth
+
         initializeButtons()
         MobileAds.initialize(this) {}
 
@@ -37,8 +43,28 @@ class HomeActivity : AppCompatActivity() {
 
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        if (auth.currentUser != null) {
+            binding.btnUserLogin.setImageDrawable(getDrawable(R.drawable.ic_baseline_person_24))
+        } else {
+            binding.btnUserLogin.setImageDrawable(getDrawable(R.drawable.ic_baseline_person_outline_24))
+        }
+    }
+
     private fun initializeButtons() {
         updateLanguageSelected()
+
+        if (auth.currentUser != null) {
+            binding.btnUserLogin.setImageDrawable(getDrawable(R.drawable.ic_baseline_person_24))
+        } else {
+            binding.btnUserLogin.setImageDrawable(getDrawable(R.drawable.ic_baseline_person_outline_24))
+        }
+
+        binding.btnUserLogin.setOnClickListener {
+            startActivity(Intent(this, StartLoginActivity::class.java))
+        }
 
         binding.btnHowToUse.setOnClickListener {
             // Aca se debería abrir un (full screen dialog? o modal?) explicando como se usa

@@ -13,4 +13,8 @@
     <string name="lang_english">English</string>
     <string name="lang_portuguese">Portuguese</string>
     <string name="how_to_use_title">Cómo se usa la aplicación</string>
+    <string name="your_web_client_id">481251153805-sjr3mpka5p9egd61ijrj35jpfb8hcq06.apps.googleusercontent.com</string>
+    <string name="google_login">Google Login</string>
+    <string name="sign_in_with_google">Entrar con Google</string>
+    <string name="sign_out">Desconectarse</string>
 </resources>
