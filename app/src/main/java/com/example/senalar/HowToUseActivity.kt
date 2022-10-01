@@ -43,6 +43,10 @@ class HowToUseActivity : AppCompatActivity() {
             RequestConfiguration.Builder().setTestDeviceIds(listOf("ABCDEF012345")).build()
         )
         startGame()
+
+        binding.btnClose.setOnClickListener {
+            this.finish()
+        }
     }
 
     private fun loadAd() {
