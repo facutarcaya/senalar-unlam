@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.senalar.handlers
+package com.unlam.senalar.handlers
 
 import android.graphics.*
 import android.media.Image

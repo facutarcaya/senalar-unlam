@@ -1,4 +1,4 @@
-package com.example.senalar
+package com.unlam.senalar
 
 import org.junit.Test
 

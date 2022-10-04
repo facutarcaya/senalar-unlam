@@ -1,4 +1,4 @@
-package com.example.senalar.helpers
+package com.unlam.senalar.helpers
 
 class LanguageHelper {
     companion object {

@@ -1,4 +1,4 @@
-package com.example.senalar
+package com.unlam.senalar
 
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -8,7 +8,7 @@ import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import android.util.Log
-import com.example.senalar.databinding.ActivityHowToUseBinding
+import com.unlam.senalar.databinding.ActivityHowToUseBinding
 
 const val GAME_LENGTH_MILLISECONDS = 3000L
 const val AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
