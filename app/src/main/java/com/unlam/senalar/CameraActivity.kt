@@ -157,7 +157,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun loadPredictionsFile() {
         lateinit var jsonString: String
         try {
-            jsonString = this.assets.open("predictions.json")
+            jsonString = this.assets.open("predictions/predictions_${languageTranslation}.json")
                 .bufferedReader()
                 .use { it.readText() }
 

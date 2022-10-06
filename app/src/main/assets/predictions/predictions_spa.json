@@ -1,0 +1,28 @@
+{
+  "predictions": {
+    "donde": {
+      "colectivo": "para el Colectivo",
+      "hospital": "queda el Hospital más cercano?"
+    },
+    "comprar": {
+      "agua": "Agua",
+      "comida": "Comida"
+    },
+    "hola": {
+      "perdon": "te quería pedir Perdón"
+    }
+  },
+  "replacements": {
+    "no entender": "No entendí, ¿puede repetir otra vez?",
+    "comprar": "Quiero comprar",
+    "agua": "Quiero Agua",
+    "comida": "Quiero Comida",
+    "cuando": "¿Cuándo es?",
+    "dolor": "Siento Dolor",
+    "pagar": "Quiero pagar",
+    "duda": "Tengo una duda",
+    "ayuda": "Necesito ayuda",
+    "fiebre": "Tengo fiebre",
+    "vomito": "Tengo vómitos"
+  }
+}
