@@ -605,7 +605,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             handWordsClassifier = HandActionClassifier.createHandActionClassifier(
-                this, "words_model.tflite", "words_labels_${languageTranslation}.txt"
+                this, "dynamic/base_model/base_model_model.tflite", "dynamic/base_model/base_model_labels_${languageTranslation}.txt"
             )
 
             Log.d(TAG, "Words Classifier created.")
@@ -616,7 +616,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             handNumbersClassifier = HandGestureClassifier.createHandGestureClassifier(
-                this, "numbers_model.tflite", "numbers_labels.txt"
+                this, "static/numbers_model.tflite", "static/numbers_labels.txt"
             )
 
             Log.d(TAG, "Numbers Classifier created.")
@@ -627,7 +627,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             handLettersClassifier = HandGestureClassifier.createHandGestureClassifier(
-                this, "numbers_model.tflite", "numbers_labels.txt"
+                this, "static/numbers_model.tflite", "static/numbers_labels.txt"
             )
 
             Log.d(TAG, "Letters Classifier created.")
