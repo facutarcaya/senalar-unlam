@@ -1,12 +1,11 @@
-package com.example.senalar
+package com.unlam.senalar
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Button
-import com.example.senalar.databinding.ActivityHomeBinding
-import com.example.senalar.helpers.LanguageHelper
-import com.example.senalar.helpers.PreferencesHelper
+import com.unlam.senalar.databinding.ActivityHomeBinding
+import com.unlam.senalar.helpers.LanguageHelper
+import com.unlam.senalar.helpers.PreferencesHelper
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView

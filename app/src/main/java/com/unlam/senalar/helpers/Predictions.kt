@@ -1,4 +1,4 @@
-package com.example.senalar.helpers
+package com.unlam.senalar.helpers
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName

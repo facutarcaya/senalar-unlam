@@ -1,4 +1,4 @@
-package com.example.senalar.handlers
+package com.unlam.senalar.handlers
 
 import com.google.mediapipe.solutions.hands.HandsResult
 import org.tensorflow.lite.support.label.Category

@@ -1,9 +1,9 @@
-package com.example.senalar
+package com.unlam.senalar
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.example.senalar.databinding.ActivityMainBinding
+import com.unlam.senalar.databinding.ActivityMainBinding
 
 @androidx.camera.core.ExperimentalGetImage
 class MainActivity : AppCompatActivity() {

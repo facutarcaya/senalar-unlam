@@ -1,4 +1,4 @@
-package com.example.senalar
+package com.unlam.senalar
 
 import android.Manifest
 import android.content.Context
@@ -27,17 +27,17 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.senalar.connection.ClientPC
-import com.example.senalar.databinding.ActivityCameraBinding
-import com.example.senalar.databinding.CameraUiContainerBinding
-import com.example.senalar.handlers.CalculateUtils
-import com.example.senalar.handlers.HandActionClassifier
-import com.example.senalar.handlers.HandClassifier
-import com.example.senalar.handlers.HandGestureClassifier
-import com.example.senalar.helpers.LanguageHelper
-import com.example.senalar.helpers.Predictions
-import com.example.senalar.helpers.PreferencesHelper
-import com.example.senalar.helpers.PreferencesHelper.Companion.SOUND_ON_PREF
+import com.unlam.senalar.connection.ClientPC
+import com.unlam.senalar.databinding.ActivityCameraBinding
+import com.unlam.senalar.databinding.CameraUiContainerBinding
+import com.unlam.senalar.handlers.CalculateUtils
+import com.unlam.senalar.handlers.HandActionClassifier
+import com.unlam.senalar.handlers.HandClassifier
+import com.unlam.senalar.handlers.HandGestureClassifier
+import com.unlam.senalar.helpers.LanguageHelper
+import com.unlam.senalar.helpers.Predictions
+import com.unlam.senalar.helpers.PreferencesHelper
+import com.unlam.senalar.helpers.PreferencesHelper.Companion.SOUND_ON_PREF
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.mediapipe.solutions.hands.Hands

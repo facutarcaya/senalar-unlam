@@ -1,4 +1,4 @@
-package com.example.senalar
+package com.unlam.senalar
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

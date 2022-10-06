@@ -1,8 +1,8 @@
-package com.example.senalar.connection
+package com.unlam.senalar.connection
 
 import android.os.SystemClock
 import android.util.Log
-import com.example.senalar.CameraActivity
+import com.unlam.senalar.CameraActivity
 import java.io.*
 import java.net.Socket
 import java.util.*
