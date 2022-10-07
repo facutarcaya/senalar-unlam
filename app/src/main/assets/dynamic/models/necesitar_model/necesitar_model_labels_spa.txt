@@ -1,0 +1,5 @@
+Comprar_R
+Hospital_R
+Comida_R
+Agua_R
+Pagar_R

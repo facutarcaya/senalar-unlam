@@ -1,10 +1,10 @@
-Muchas Gracias_R
-Hola_R
-Que_R
-Hospital_R
-Perdon_R
-Permiso_R
-Adios_R
+Gracias_R
 No Entender_R
-Aprender_R
-Saber_R
+Cuando_R
+Perdon_R
+Donde_R
+Si_R
+No_R
+Saludo_R
+Necesitar_R
+Ayuda_R

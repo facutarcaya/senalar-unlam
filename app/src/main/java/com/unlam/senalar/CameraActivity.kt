@@ -17,6 +17,7 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.util.Range
 import android.view.LayoutInflater
+import android.view.WindowManager
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
@@ -71,7 +72,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var handNumbersClassifier: HandGestureClassifier? = null
     private var handLettersClassifier: HandGestureClassifier? = null
     private var isActionDetection = true
-    private var scoreThreshold = 0.40 // Min score to assume inference is correct
+    private var scoreThreshold = DYNAMIC_SCORE_THRESHOLD // Min score to assume inference is correct
     private var modelFps = 16 // Model FPS
     private var currentModel = "base_model"
     private var isPredictionModel = false
@@ -124,6 +125,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         binding = ActivityCameraBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         // Initialize preferences
         preferencesHelper = PreferencesHelper(this.applicationContext)
@@ -254,7 +257,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         cameraUiContainerBinding.btnWords.setOnClickListener {
             handClassifier = handWordsClassifier
             isActionDetection = true
-            scoreThreshold = 0.40
+            scoreThreshold = DYNAMIC_SCORE_THRESHOLD
             modelFps = 16
             currentModel = "base_model"
             isPredictionModel = false
@@ -495,19 +498,18 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         } else {
                             detectionCount++
                             if (detectionCount >= MIN_DETECTION_ACTION) {
-                                processWord(lastResult, newWord)
-                                lastResult = newWord
-                                detectionCount = 0
-                                lastDetectionStartTime = SystemClock.uptimeMillis()
+                                if (!isPredictionModel || ((currentTime - lastPredictionStartTime) / MILLIS_IN_SECONDS) > DONT_DETECT_SECONDS_WINDOW) {
+                                    processWord(lastResult, newWord)
+                                    lastResult = newWord
+                                    detectionCount = 0
+                                    lastDetectionStartTime = SystemClock.uptimeMillis()
+                                }
                             }
                         }
                     }
 
                     if (isPredictionModel && ((currentTime - lastPredictionStartTime) / MILLIS_IN_SECONDS) > PREDICTION_SECONDS_WINDOW ) {
-                        handClassifier = handWordsClassifier
-                        scoreThreshold = 0.40
-                        currentModel = "base_model"
-                        isPredictionModel = false
+                        returnToBaseModel()
                     }
 
                     if (inputFps < modelFps * (1 - MODEL_FPS_ERROR_RANGE)) {
@@ -521,6 +523,23 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
             }
         }
+    }
+
+    private fun returnToBaseModel() {
+        if (handWordsClassifier != null) {
+            handWordsClassifier?.close()
+            handWordsClassifier = null
+        }
+
+        handWordsClassifier = HandActionClassifier.createHandActionClassifier(
+            this,
+            "dynamic/base_model/base_model_model.tflite",
+            "dynamic/base_model/base_model_labels_${languageTranslation}.txt"
+        )
+        handClassifier = handWordsClassifier
+        scoreThreshold = DYNAMIC_SCORE_THRESHOLD
+        currentModel = "base_model"
+        isPredictionModel = false
     }
 
     private fun processWord(lastWord: String, newWord: String) {
@@ -551,6 +570,11 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     currentModel = newModelName
                     isPredictionModel = true
                     lastPredictionStartTime = SystemClock.uptimeMillis()
+
+                    return
+                }
+                if (isPredictionModel) {
+                    returnToBaseModel()
                 }
             }
         }
@@ -743,6 +767,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val MIN_DETECTION_ACTION = 10
         private const val PREDICTION_SECONDS_WINDOW = 10
         private const val SAME_WORD_SECONDS_WINDOW = 5
+        private const val DONT_DETECT_SECONDS_WINDOW = 4
+        private const val DYNAMIC_SCORE_THRESHOLD = 0.30
 
         // Constants
         private const val MILLIS_IN_SECONDS = 1000f

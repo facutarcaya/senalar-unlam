@@ -1,0 +1,6 @@
+Hospital_R
+Vomitar_R
+Fiebre_R
+Ambulancia_R
+Dolor_R
+Por favor_R

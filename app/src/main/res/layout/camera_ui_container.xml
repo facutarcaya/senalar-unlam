@@ -120,7 +120,9 @@
         android:gravity="center"
         app:singleSelection="true"
         app:selectionRequired="true"
-        app:checkedButton="@id/btnWords">
+        app:checkedButton="@id/btnWords"
+        android:divider="@drawable/divider"
+        android:showDividers="middle">
 
         <Button
             android:id="@+id/btnNumbers"

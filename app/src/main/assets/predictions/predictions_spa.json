@@ -10,32 +10,23 @@
     },
     "hola": {
       "perdon": "te quería pedir Perdón"
+    },
+    "necesitar": {
+      "hospital": "ir a un hospital"
     }
   },
   "replacements": {
+    "necesitar": "necesito",
     "no entender": "No entendí, ¿puede repetir otra vez?",
-    "comprar": "Quiero comprar",
-    "agua": "Quiero Agua",
-    "comida": "Quiero Comida",
     "cuando": "¿Cuándo es?",
     "dolor": "Siento Dolor",
-    "pagar": "Quiero pagar",
     "duda": "Tengo una duda",
-    "ayuda": "Necesito ayuda",
     "fiebre": "Tengo fiebre",
     "vomito": "Tengo vómitos"
   },
   "sentences": {
-    "gracias": "gracias_model",
-    "cuando": "cuando_model",
     "perdon": "perdon_model",
-    "donde": "donde_model",
-    "Comprar": "comprar_model",
-    "si": "decision_model",
-    "no": "decision_model",
-    "saludo": "saludo_model",
     "necesitar": "necesitar_model",
-    "ayuda": "ayuda_model",
-    "dolor": "dolor_model"
+    "ayuda": "ayuda_model"
   }
 }
