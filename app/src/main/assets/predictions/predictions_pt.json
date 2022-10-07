@@ -24,5 +24,18 @@
     "ayuda": "Necesito ayuda",
     "fiebre": "Tengo fiebre",
     "vomito": "Tengo vómitos"
+  },
+  "sentences": {
+    "Gracias": "gracias_model",
+    "Cuando": "cuando_model",
+    "Perdón": "perdon_model",
+    "Donde": "donde_model",
+    "Comprar": "comprar_model",
+    "Si": "decision_model",
+    "No": "decision_model",
+    "Saludo": "saludo_model",
+    "Necesitar": "necesitar_model",
+    "Ayuda": "ayuda_model",
+    "Dolor": "dolor_model"
   }
 }

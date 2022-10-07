@@ -183,6 +183,13 @@
             android:text="Debug Text: 0.78%"
             android:textSize="20sp"
             android:textStyle="bold"/>
+        <TextView
+            android:id="@+id/tvModel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Model: base_model"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

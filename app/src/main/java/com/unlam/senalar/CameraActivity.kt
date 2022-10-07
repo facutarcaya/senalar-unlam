@@ -47,6 +47,7 @@ import org.tensorflow.lite.support.label.Category
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 
 @androidx.camera.core.ExperimentalGetImage
@@ -66,13 +67,18 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // Model variables
     private var handClassifier: HandClassifier? = null
     private var handWordsClassifier: HandActionClassifier? = null
+    private var handWordsPredictionClassifier: HandActionClassifier? = null
     private var handNumbersClassifier: HandGestureClassifier? = null
     private var handLettersClassifier: HandGestureClassifier? = null
     private var isActionDetection = true
     private var scoreThreshold = 0.40 // Min score to assume inference is correct
     private var modelFps = 16 // Model FPS
+    private var currentModel = "base_model"
+    private var isPredictionModel = false
 
     private var lastInferenceStartTime: Long = 0
+    private var lastPredictionStartTime: Long = 0
+    private var lastDetectionStartTime: Long = 0
 
     // Saves the last result of the analysis
     private var lastResult : String = "Nothing"
@@ -232,6 +238,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             isActionDetection = false
             scoreThreshold = 0.25
             modelFps = 5
+            currentModel = "numbers_model"
+            isPredictionModel = false
         }
 
         cameraUiContainerBinding.btnLetters.setOnClickListener {
@@ -239,6 +247,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             isActionDetection = false
             scoreThreshold = 0.25
             modelFps = 5
+            currentModel = "letters_model"
+            isPredictionModel = false
         }
 
         cameraUiContainerBinding.btnWords.setOnClickListener {
@@ -246,6 +256,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             isActionDetection = true
             scoreThreshold = 0.40
             modelFps = 16
+            currentModel = "base_model"
+            isPredictionModel = false
         }
     }
 
@@ -458,7 +470,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // Check to ensure that we only run inference at a frequency required by the
             // model, within an acceptable error range (e.g. 10%). Discard the frames
             // that comes too early.
-            if (diff * modelFps >= 1000 /* milliseconds */ * (1 - MODEL_FPS_ERROR_RANGE)) {
+            if (diff * modelFps >= MILLIS_IN_SECONDS /* milliseconds */ * (1 - MODEL_FPS_ERROR_RANGE)) {
 
                 lastInferenceStartTime = currentTime
 
@@ -467,14 +479,16 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     // Run inference using the TFLite model.
 
                     val results = classifier.classify(handsResult)
-                    val inputFps = 1000f / diff
+                    val inputFps = MILLIS_IN_SECONDS / diff
 
                     showResultsInDebug(results)
 
                     val newWord = sanitizeNewWord(results[0].label)
                     val newWordScore = results[0].score
 
-                    if (!muteOn && newWord != lastResult && newWordScore >= scoreThreshold) {
+                    if (!muteOn &&
+                        (newWord != lastResult || ((currentTime - lastDetectionStartTime) / MILLIS_IN_SECONDS) > SAME_WORD_SECONDS_WINDOW) &&
+                        newWordScore >= scoreThreshold) {
                         if (newWord != actionLastResult) {
                             detectionCount = 0
                             actionLastResult = newWord
@@ -484,8 +498,16 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                 processWord(lastResult, newWord)
                                 lastResult = newWord
                                 detectionCount = 0
+                                lastDetectionStartTime = SystemClock.uptimeMillis()
                             }
                         }
+                    }
+
+                    if (isPredictionModel && ((currentTime - lastPredictionStartTime) / MILLIS_IN_SECONDS) > PREDICTION_SECONDS_WINDOW ) {
+                        handClassifier = handWordsClassifier
+                        scoreThreshold = 0.40
+                        currentModel = "base_model"
+                        isPredictionModel = false
                     }
 
                     if (inputFps < modelFps * (1 - MODEL_FPS_ERROR_RANGE)) {
@@ -506,6 +528,32 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         addWordToSubtitle(replacedWord)
         speakThroughTTS(replacedWord)
         sendToPC(replacedWord)
+        changeDetectionModel(newWord)
+    }
+
+    private fun changeDetectionModel(newWord: String) {
+        if (isActionDetection) {
+            predictionsFile.sentences?.let { sentences ->
+                sentences[newWord.lowercase()]?.let { newModelName ->
+                    if (handWordsPredictionClassifier != null) {
+                        handWordsPredictionClassifier?.close()
+                        handWordsPredictionClassifier = null
+                    }
+
+                    handWordsPredictionClassifier = HandActionClassifier.createHandActionClassifier(
+                        this,
+                        "dynamic/models/$newModelName/$newModelName.tflite",
+                        "dynamic/models/$newModelName/${newModelName}_labels_${languageTranslation}.txt"
+                    )
+
+                    handClassifier = handWordsPredictionClassifier
+
+                    currentModel = newModelName
+                    isPredictionModel = true
+                    lastPredictionStartTime = SystemClock.uptimeMillis()
+                }
+            }
+        }
     }
 
     private fun searchForPredictions(lastWord: String, newWord: String): String {
@@ -554,6 +602,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     results[1].label + ": " + String.format("%.2f", results[1].score * 100) + "%"
                 cameraUiContainerBinding.tvDetectedItem2.text =
                     results[2].label + ": " + String.format("%.2f", results[2].score * 100) + "%"
+                cameraUiContainerBinding.tvModel.text = "Model: $currentModel"
             }
         }
     }
@@ -605,7 +654,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             handWordsClassifier = HandActionClassifier.createHandActionClassifier(
-                this, "dynamic/base_model/base_model_model.tflite", "dynamic/base_model/base_model_labels_${languageTranslation}.txt"
+                this,
+                "dynamic/base_model/base_model_model.tflite",
+                "dynamic/base_model/base_model_labels_${languageTranslation}.txt"
             )
 
             Log.d(TAG, "Words Classifier created.")
@@ -616,7 +667,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             handNumbersClassifier = HandGestureClassifier.createHandGestureClassifier(
-                this, "static/numbers_model.tflite", "static/numbers_labels.txt"
+                this,
+                "static/numbers_model.tflite",
+                "static/numbers_labels.txt"
             )
 
             Log.d(TAG, "Numbers Classifier created.")
@@ -627,7 +680,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             handLettersClassifier = HandGestureClassifier.createHandGestureClassifier(
-                this, "static/numbers_model.tflite", "static/numbers_labels.txt"
+                this,
+                "static/numbers_model.tflite",
+                "static/numbers_labels.txt"
             )
 
             Log.d(TAG, "Letters Classifier created.")
@@ -681,12 +736,18 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val RUN_ON_GPU = true
 
         //Tensorflow
-        private const val REQUEST_CODE_PERMISSIONS = 10
         private const val TAG = "TFLite-VidClassify"
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         private const val MODEL_FPS_ERROR_RANGE = 0.1 // Acceptable error range in fps.
         private const val MAX_CAPTURE_FPS = 20
         private const val MIN_DETECTION_ACTION = 10
+        private const val PREDICTION_SECONDS_WINDOW = 10
+        private const val SAME_WORD_SECONDS_WINDOW = 5
+
+        // Constants
+        private const val MILLIS_IN_SECONDS = 1000f
+        private const val REQUEST_CODE_PERMISSIONS = 10
+
     }
 
     override fun onDestroy() {
