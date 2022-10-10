@@ -705,8 +705,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             handLettersClassifier = HandGestureClassifier.createHandGestureClassifier(
                 this,
-                "static/numbers_model.tflite",
-                "static/numbers_labels.txt"
+                "static/letters_model.tflite",
+                "static/letters_labels.txt"
             )
 
             Log.d(TAG, "Letters Classifier created.")
