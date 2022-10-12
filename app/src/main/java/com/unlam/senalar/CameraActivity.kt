@@ -17,6 +17,7 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.util.Range
 import android.view.LayoutInflater
+import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.ImageButton
@@ -74,7 +75,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var isActionDetection = true
     private var scoreThreshold = DYNAMIC_SCORE_THRESHOLD // Min score to assume inference is correct
     private var modelFps = 16 // Model FPS
-    private var currentModel = "base_model"
+    private var currentModel = "Inicio"
     private var isPredictionModel = false
 
     private var lastInferenceStartTime: Long = 0
@@ -241,7 +242,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             isActionDetection = false
             scoreThreshold = 0.25
             modelFps = 5
-            currentModel = "numbers_model"
+            currentModel = "Números"
             isPredictionModel = false
         }
 
@@ -250,7 +251,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             isActionDetection = false
             scoreThreshold = 0.25
             modelFps = 5
-            currentModel = "letters_model"
+            currentModel = "Letras"
             isPredictionModel = false
         }
 
@@ -259,7 +260,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             isActionDetection = true
             scoreThreshold = DYNAMIC_SCORE_THRESHOLD
             modelFps = 16
-            currentModel = "base_model"
+            currentModel = "Inicio"
             isPredictionModel = false
         }
     }
@@ -538,7 +539,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
         handClassifier = handWordsClassifier
         scoreThreshold = DYNAMIC_SCORE_THRESHOLD
-        currentModel = "base_model"
+        currentModel = "Inicio"
         isPredictionModel = false
     }
 
@@ -567,7 +568,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                     handClassifier = handWordsPredictionClassifier
 
-                    currentModel = newModelName
+                    currentModel = newWord
                     isPredictionModel = true
                     lastPredictionStartTime = SystemClock.uptimeMillis()
 
@@ -621,12 +622,40 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (debugMode) {
             runOnUiThread {
                 cameraUiContainerBinding.tvDetectedItem0.text =
-                    results[0].label + ": " + String.format("%.2f", results[0].score * 100) + "%"
+                    sanitizeNewWord(results[0].label) + ": " + String.format("%.2f", results[0].score * 100) + "%"
+                cameraUiContainerBinding.pgDetectedItem0.visibility = View.GONE
                 cameraUiContainerBinding.tvDetectedItem1.text =
-                    results[1].label + ": " + String.format("%.2f", results[1].score * 100) + "%"
+                    sanitizeNewWord(results[1].label) + ": " + String.format("%.2f", results[1].score * 100) + "%"
+                cameraUiContainerBinding.pgDetectedItem1.visibility = View.GONE
                 cameraUiContainerBinding.tvDetectedItem2.text =
-                    results[2].label + ": " + String.format("%.2f", results[2].score * 100) + "%"
-                cameraUiContainerBinding.tvModel.text = "Model: $currentModel"
+                    sanitizeNewWord(results[2].label) + ": " + String.format("%.2f", results[2].score * 100) + "%"
+                cameraUiContainerBinding.pgDetectedItem2.visibility = View.GONE
+                cameraUiContainerBinding.tvModel.text = "Etapa: $currentModel"
+            }
+        } else {
+            runOnUiThread {
+                cameraUiContainerBinding.tvDetectedItem0.text =
+                    sanitizeNewWord(results[0].label) + ":"
+                cameraUiContainerBinding.pgDetectedItem0.visibility = View.VISIBLE
+                cameraUiContainerBinding.pgDetectedItem0.progress = if ((results[0].score * 100 / scoreThreshold) >= 100) {
+                        100 } else {
+                    (results[2].score * 100 / scoreThreshold)
+                }.toInt()
+                cameraUiContainerBinding.tvDetectedItem1.text =
+                            sanitizeNewWord(results[1].label) + ":"
+                cameraUiContainerBinding.pgDetectedItem1.visibility = View.VISIBLE
+                cameraUiContainerBinding.pgDetectedItem1.progress = if ((results[1].score * 100 / scoreThreshold) >= 100) {
+                    100 } else {
+                    (results[2].score * 100 / scoreThreshold)
+                }.toInt()
+                cameraUiContainerBinding.tvDetectedItem2.text =
+                            sanitizeNewWord(results[2].label) + ":"
+                cameraUiContainerBinding.pgDetectedItem2.visibility = View.VISIBLE
+                cameraUiContainerBinding.pgDetectedItem2.progress = if ((results[1].score * 100 / scoreThreshold) >= 100) {
+                    100 } else {
+                    (results[2].score * 100 / scoreThreshold)
+                }.toInt()
+                cameraUiContainerBinding.tvModel.text = "Etapa: $currentModel"
             }
         }
     }

@@ -159,39 +159,103 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:background="@color/main_light_blue_transparent"
+        android:gravity="end"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnSwitchFlash">
 
-        <TextView
-            android:id="@+id/tvDetectedItem0"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Debug Text: 0.78%"
-            android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnSwitchFlash">
 
-        <TextView
-            android:id="@+id/tvDetectedItem1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Debug Text: 0.78%"
-            android:textSize="20sp"
-            android:textStyle="bold"/>
+            <TextView
+                android:id="@+id/tvDetectedItem0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Seña 1:"
+                android:textColor="@color/contrast_light_blue"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
 
-        <TextView
-            android:id="@+id/tvDetectedItem2"
+            <ProgressBar
+                android:id="@+id/pgDetectedItem0"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_gravity="center"
+                android:layout_width="100dp"
+                android:layout_height="30dp"
+                android:scaleY="5"
+                android:layout_weight="1" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Debug Text: 0.78%"
-            android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnSwitchFlash">
+
+            <TextView
+                android:id="@+id/tvDetectedItem1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Seña 2:"
+                android:textColor="@color/contrast_light_blue"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+            <ProgressBar
+                android:id="@+id/pgDetectedItem1"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_gravity="center"
+                android:layout_width="100dp"
+                android:layout_height="30dp"
+                android:scaleY="5"
+                android:layout_weight="1" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnSwitchFlash">
+
+            <TextView
+                android:id="@+id/tvDetectedItem2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Seña 3:"
+                android:textColor="@color/contrast_light_blue"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+            <ProgressBar
+                android:id="@+id/pgDetectedItem2"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_gravity="center"
+                android:layout_width="100dp"
+                android:layout_height="30dp"
+                android:scaleY="5"
+                android:layout_weight="1" />
+
+
+        </LinearLayout>
+
         <TextView
             android:id="@+id/tvModel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Model: base_model"
+            android:text="Etapa: Inicio"
+            android:textColor="@color/contrast_light_blue"
             android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
