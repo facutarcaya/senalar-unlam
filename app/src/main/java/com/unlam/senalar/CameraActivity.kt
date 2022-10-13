@@ -32,10 +32,6 @@ import androidx.core.content.ContextCompat
 import com.unlam.senalar.connection.ClientPC
 import com.unlam.senalar.databinding.ActivityCameraBinding
 import com.unlam.senalar.databinding.CameraUiContainerBinding
-import com.unlam.senalar.handlers.CalculateUtils
-import com.unlam.senalar.handlers.HandActionClassifier
-import com.unlam.senalar.handlers.HandClassifier
-import com.unlam.senalar.handlers.HandGestureClassifier
 import com.unlam.senalar.helpers.LanguageHelper
 import com.unlam.senalar.helpers.Predictions
 import com.unlam.senalar.helpers.PreferencesHelper
@@ -45,6 +41,7 @@ import com.google.gson.reflect.TypeToken
 import com.google.mediapipe.solutions.hands.Hands
 import com.google.mediapipe.solutions.hands.HandsOptions
 import com.google.mediapipe.solutions.hands.HandsResult
+import com.unlam.senalar.handlers.*
 import org.tensorflow.lite.support.label.Category
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -70,7 +67,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var handClassifier: HandClassifier? = null
     private var handWordsClassifier: HandActionClassifier? = null
     private var handWordsPredictionClassifier: HandActionClassifier? = null
-    private var handNumbersClassifier: HandGestureClassifier? = null
+    private var handNumbersClassifier: HandNumberClassifier? = null
     private var handLettersClassifier: HandGestureClassifier? = null
     private var isActionDetection = true
     private var scoreThreshold = DYNAMIC_SCORE_THRESHOLD // Min score to assume inference is correct
@@ -719,7 +716,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 handNumbersClassifier = null
             }
 
-            handNumbersClassifier = HandGestureClassifier.createHandGestureClassifier(
+            handNumbersClassifier = HandNumberClassifier.createHandNumberClassifier(
                 this,
                 "static/numbers_model.tflite",
                 "static/numbers_labels.txt"
