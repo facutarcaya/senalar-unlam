@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit
 @androidx.camera.lifecycle.ExperimentalUseCaseGroupLifecycle
 class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
-    private val debugMode = true
+    private val debugMode = false
 
     private lateinit var binding : ActivityCameraBinding
     private lateinit var cameraUiContainerBinding: CameraUiContainerBinding
@@ -235,6 +235,10 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun initializeModelButtons() {
         cameraUiContainerBinding.btnNumbers.setOnClickListener {
+            cameraUiContainerBinding.btnNumbers.setImageDrawable(getDrawable(R.drawable.numbers_selected))
+            cameraUiContainerBinding.btnWords.setImageDrawable(getDrawable(R.drawable.words_not_selected))
+            cameraUiContainerBinding.btnLetters.setImageDrawable(getDrawable(R.drawable.letters_not_selected))
+
             handClassifier = handNumbersClassifier
             isActionDetection = false
             scoreThreshold = 0.25
@@ -244,6 +248,10 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         cameraUiContainerBinding.btnLetters.setOnClickListener {
+            cameraUiContainerBinding.btnNumbers.setImageDrawable(getDrawable(R.drawable.numbers_not_selected))
+            cameraUiContainerBinding.btnWords.setImageDrawable(getDrawable(R.drawable.words_not_selected))
+            cameraUiContainerBinding.btnLetters.setImageDrawable(getDrawable(R.drawable.letters_selected))
+
             handClassifier = handLettersClassifier
             isActionDetection = false
             scoreThreshold = 0.25
@@ -253,6 +261,10 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         cameraUiContainerBinding.btnWords.setOnClickListener {
+            cameraUiContainerBinding.btnNumbers.setImageDrawable(getDrawable(R.drawable.numbers_not_selected))
+            cameraUiContainerBinding.btnWords.setImageDrawable(getDrawable(R.drawable.words_selected))
+            cameraUiContainerBinding.btnLetters.setImageDrawable(getDrawable(R.drawable.letters_not_selected))
+
             handClassifier = handWordsClassifier
             isActionDetection = true
             scoreThreshold = DYNAMIC_SCORE_THRESHOLD

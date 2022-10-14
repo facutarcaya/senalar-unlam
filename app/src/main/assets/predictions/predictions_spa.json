@@ -2,7 +2,12 @@
   "predictions": {
     "donde": {
       "colectivo": "para el Colectivo",
-      "hospital": "queda el Hospital más cercano?"
+      "hospital": "queda el Hospital más cercano?",
+      "comprar": "puedo comprar",
+      "subte": "está el subte",
+      "tren": "está el tren",
+      "negocio": "hay un negocio",
+      "pagar": "puedo pagar?"
     },
     "comprar": {
       "agua": "Agua",
@@ -13,6 +18,21 @@
     },
     "necesitar": {
       "hospital": "ir a un hospital"
+    },
+    "si": {
+      "necesitar": "necesito",
+      "saber": "se",
+      "ir": "voy",
+      "poder": "puedo"
+    },
+    "no": {
+      "necesitar": "necesito",
+      "saber": "se",
+      "ir": "voy",
+      "poder": "puedo"
+    },
+    "saber": {
+      "que": "que es"
     }
   },
   "replacements": {
@@ -25,7 +45,10 @@
     "vomito": "Tengo vómitos"
   },
   "sentences": {
-    "perdon": "perdon_model",
+    "si": "decisiones_model",
+    "no": "decisiones_model",
+    "saber": "saber_model",
+    "comprar": "comprar_model",
     "necesitar": "necesitar_model",
     "ayuda": "ayuda_model"
   }

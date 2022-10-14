@@ -108,7 +108,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_baseline_cast_24"/>
 
-    <com.google.android.material.button.MaterialButtonToggleGroup
+    <LinearLayout
         android:id="@+id/toggleButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -117,43 +117,29 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_margin="16dp"
-        android:gravity="center"
-        app:singleSelection="true"
-        app:selectionRequired="true"
-        app:checkedButton="@id/btnWords"
-        android:divider="@drawable/divider"
-        android:showDividers="middle">
+        android:gravity="center">
 
-        <Button
+        <ImageView
             android:id="@+id/btnNumbers"
-            style="?attr/materialButtonOutlinedStyle"
-            android:backgroundTint="@color/contrast_light_blue"
-            android:textColor="@color/main_light_blue"
+            android:src="@drawable/numbers_not_selected"
+            android:layout_marginTop="16dp"
             android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:textAllCaps="false"
-            android:text="123" />
+            android:layout_height="60dp"/>
 
-        <Button
+        <ImageView
             android:id="@+id/btnLetters"
-            style="?attr/materialButtonOutlinedStyle"
-            android:backgroundTint="@color/contrast_light_blue"
-            android:textColor="@color/main_light_blue"
+            android:src="@drawable/letters_not_selected"
+            android:layout_marginTop="16dp"
             android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:textAllCaps="false"
-            android:text="A-Z" />
+            android:layout_height="60dp"/>
 
-        <Button
+        <ImageView
             android:id="@+id/btnWords"
-            style="?attr/materialButtonOutlinedStyle"
-            android:backgroundTint="@color/contrast_light_blue"
-            android:textColor="@color/main_light_blue"
+            android:src="@drawable/words_selected"
+            android:layout_marginTop="16dp"
             android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:textAllCaps="false"
-            android:text="Pal" />
-    </com.google.android.material.button.MaterialButtonToggleGroup>
+            android:layout_height="60dp"/>
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
