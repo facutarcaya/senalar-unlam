@@ -13,6 +13,10 @@
       "agua": "Agua",
       "comida": "Comida"
     },
+    "ayuda": {
+      "hospital": "tengo que ir a un hospital",
+      "ambulancia": "necesito una ambulancia"
+    },
     "hola": {
       "perdon": "te quería pedir Perdón"
     },
@@ -33,6 +37,12 @@
     },
     "saber": {
       "que": "que es"
+    },
+    "muchas gracias": {
+      "saludo": "chau"
+    },
+    "saludo": {
+      "nombre": "mi nombre es"
     }
   },
   "replacements": {
@@ -42,7 +52,8 @@
     "dolor": "Siento Dolor",
     "duda": "Tengo una duda",
     "fiebre": "Tengo fiebre",
-    "vomito": "Tengo vómitos"
+    "vomitar": "Tengo vómitos",
+    "saludo": "Hola"
   },
   "sentences": {
     "si": "decisiones_model",
@@ -50,6 +61,8 @@
     "saber": "saber_model",
     "comprar": "comprar_model",
     "necesitar": "necesitar_model",
-    "ayuda": "ayuda_model"
+    "ayuda": "ayuda_model",
+    "colectivo": "numbers_model",
+    "subte": "letters_model"
   }
 }

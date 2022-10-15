@@ -19,6 +19,7 @@ class HandNumberClassifier private constructor(
         private const val MAX_OPTIONS = 3
         private const val HAND_LANDMARKS_SIZE = 21
         private const val AXIS_LANDMARKS_SIZE = 2
+        private const val NO_RESULT = "Esperando..."
 
         fun createHandNumberClassifier(context: Context, model_path: String, labels_path: String): HandNumberClassifier {
             // Create a TFLite interpreter from the TFLite model file.
@@ -42,9 +43,9 @@ class HandNumberClassifier private constructor(
 
         if (numHands == 0) {
             val dummyCategories = mutableListOf<Category>()
-            dummyCategories.add(Category("None1", 0.0f))
-            dummyCategories.add(Category("None2", 0.0f))
-            dummyCategories.add(Category("None3", 0.0f))
+            dummyCategories.add(Category(NO_RESULT, 0.0f))
+            dummyCategories.add(Category(NO_RESULT, 0.0f))
+            dummyCategories.add(Category(NO_RESULT, 0.0f))
             return dummyCategories
         }
 

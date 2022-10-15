@@ -501,7 +501,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                     if (!muteOn &&
                         (newWord != lastResult || ((currentTime - lastDetectionStartTime) / MILLIS_IN_SECONDS) > SAME_WORD_SECONDS_WINDOW) &&
-                        newWordScore >= scoreThreshold) {
+                        newWordScore >= scoreThreshold &&
+                        (((currentTime - lastDetectionStartTime) / MILLIS_IN_SECONDS) > NEW_WORD_SECONDS_WINDOW)) {
                         if (newWord != actionLastResult) {
                             detectionCount = 0
                             actionLastResult = newWord
@@ -564,6 +565,15 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (isActionDetection) {
             predictionsFile.sentences?.let { sentences ->
                 sentences[newWord.lowercase()]?.let { newModelName ->
+                    if (newModelName == "numbers_model") {
+                        // TODO CLICK ON NUMBERS BTN
+                        return
+                    }
+                    if (newModelName == "letters_model") {
+                        // TODO CLICK ON LETTERS BTN
+                        return
+                    }
+
                     if (handWordsPredictionClassifier != null) {
                         handWordsPredictionClassifier?.close()
                         handWordsPredictionClassifier = null
@@ -805,6 +815,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val MIN_DETECTION_ACTION = 10
         private const val PREDICTION_SECONDS_WINDOW = 10
         private const val SAME_WORD_SECONDS_WINDOW = 5
+        private const val NEW_WORD_SECONDS_WINDOW = 2
         private const val DONT_DETECT_SECONDS_WINDOW = 4
         private const val DYNAMIC_SCORE_THRESHOLD = 0.30
 

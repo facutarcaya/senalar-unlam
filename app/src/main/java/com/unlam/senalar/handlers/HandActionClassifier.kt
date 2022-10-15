@@ -23,6 +23,7 @@ class HandActionClassifier private constructor(
         private const val HAND_LANDMARKS_SIZE = 21
         private const val AXIS_LANDMARKS_SIZE = 2
         private const val MODEL_FPS = 16
+        private const val NO_RESULT = "Esperando..."
 
         fun createHandActionClassifier(context: Context, model_path: String, labels_path: String): HandActionClassifier {
             // Create a TFLite interpreter from the TFLite model file.
@@ -62,9 +63,9 @@ class HandActionClassifier private constructor(
 
         if (frameQueue.size < MODEL_FPS) {
             val dummyCategories = mutableListOf<Category>()
-            dummyCategories.add(Category("None1", 0.0f))
-            dummyCategories.add(Category("None2", 0.0f))
-            dummyCategories.add(Category("None3", 0.0f))
+            dummyCategories.add(Category(NO_RESULT, 0.0f))
+            dummyCategories.add(Category(NO_RESULT, 0.0f))
+            dummyCategories.add(Category(NO_RESULT, 0.0f))
             return dummyCategories
         }
 
