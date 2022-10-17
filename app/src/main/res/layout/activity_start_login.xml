@@ -65,7 +65,7 @@
                 app:cardCornerRadius="20dp"
                 app:cardElevation="30dp"
                 android:layout_gravity="center"
-                android:layout_margin="50dp"
+                android:layout_marginTop="50dp"
                 android:clickable="true"
                 android:focusable="true"
                 android:id="@+id/signin">
@@ -98,6 +98,37 @@
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
+
+            <Button
+                android:id="@+id/btnSubscribe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:backgroundTint="@color/contrast_light_blue"
+                android:layout_marginTop="16dp"
+                android:text="Suscribirse a premium" />
+
+            <TextView
+                android:id="@+id/tvSubscribeDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/baloo_thambi"
+                android:layout_marginTop="16dp"
+                android:paddingStart="20dp"
+                android:paddingLeft="20dp"
+                android:text="Subscrito a versión premium con tarjeta terminada en **** 4058"
+                android:textColor="@color/contrast_light_blue"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnCancelSubscribe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:backgroundTint="@color/pause_red"
+                android:layout_marginTop="8dp"
+                android:text="Cancelar subscripción" />
 
         </LinearLayout>
 

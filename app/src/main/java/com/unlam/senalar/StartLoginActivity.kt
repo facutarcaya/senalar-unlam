@@ -1,12 +1,11 @@
 package com.unlam.senalar
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import com.unlam.senalar.databinding.ActivityStartLoginBinding
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -15,12 +14,22 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
+import com.google.gson.Gson
 import com.squareup.picasso.Picasso
+import com.unlam.senalar.databinding.ActivityStartLoginBinding
+import com.unlam.senalar.helpers.PreferencesHelper
+import com.unlam.senalar.helpers.SubscribedUser
+
 
 class StartLoginActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
+    private lateinit var database: FirebaseDatabase
+
+    // Preferences variables
+    private lateinit var preferencesHelper: PreferencesHelper
 
     private lateinit var binding : ActivityStartLoginBinding
 
@@ -28,6 +37,12 @@ class StartLoginActivity : AppCompatActivity() {
         binding = ActivityStartLoginBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+        // Init database
+        database = FirebaseDatabase.getInstance()
+
+        // Initialize preferences
+        preferencesHelper = PreferencesHelper(this.applicationContext)
 
         // Configure Google Sign In
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -42,6 +57,30 @@ class StartLoginActivity : AppCompatActivity() {
         binding.btnClose.setOnClickListener {
             this.finish()
         }
+
+        binding.btnSubscribe.setOnClickListener {
+            auth.currentUser?.let {
+                writeUser(it)
+            }
+        }
+
+        binding.btnCancelSubscribe.setOnClickListener {
+            auth.currentUser?.uid?.let {
+                database.getReference(DATABASE_NAME).child(DATABASE_USERS_FIELD).child(it).removeValue().addOnSuccessListener {
+                    preferencesHelper.setBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED, false)
+                }
+            }
+        }
+    }
+
+    private fun writeUser(user: FirebaseUser) {
+        database.getReference(DATABASE_NAME).child(DATABASE_USERS_FIELD).child(user.uid).setValue(SubscribedUser(user.email, "5809")).addOnSuccessListener {
+            user.email?.let {
+                preferencesHelper.setStringPreference(PreferencesHelper.EMAIL_SUBSCRIPTION, it)
+            }
+            preferencesHelper.setStringPreference(PreferencesHelper.CREDIT_CARD_SUBSCRIPTION, "5980")
+            preferencesHelper.setBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED, true)
+        }
     }
 
     override fun onStart() {
@@ -49,6 +88,27 @@ class StartLoginActivity : AppCompatActivity() {
         // Check if user is signed in (non-null) and update UI accordingly.
         val currentUser = auth.currentUser
         updateUI(currentUser)
+    }
+
+    private fun searchSubscription(user: FirebaseUser) {
+        user.email?.let { email ->
+            database.getReference(DATABASE_NAME).child(DATABASE_USERS_FIELD).child(user.uid).get().addOnSuccessListener {
+                try {
+                    var subscribedUser = Gson().fromJson(it.value.toString(), SubscribedUser::class.java)
+                    preferencesHelper.setBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED, true)
+                    subscribedUser.email?.let {
+                        preferencesHelper.setStringPreference(PreferencesHelper.EMAIL_SUBSCRIPTION, it)
+                    }
+                    subscribedUser.creditCardDigits?.let {
+                        preferencesHelper.setStringPreference(PreferencesHelper.CREDIT_CARD_SUBSCRIPTION, it)
+                    }
+                } catch (e: Exception) {
+                    Log.e("firebase", "Error decrypting user", e)
+                }
+            }.addOnFailureListener{
+                Log.e("firebase", "Error getting data", it)
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -93,7 +153,7 @@ class StartLoginActivity : AppCompatActivity() {
     }
 
     private fun signOut() {
-        googleSignInClient!!.signOut()
+        googleSignInClient.signOut()
             .addOnCompleteListener(this) {
                 auth.signOut()
                 updateUI(null)
@@ -111,8 +171,27 @@ class StartLoginActivity : AppCompatActivity() {
             binding.signin.setOnClickListener {
                 signOut()
             }
+
+            searchSubscription(it)
+
+            if (preferencesHelper.getBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED) &&
+                    preferencesHelper.getStringPreference(PreferencesHelper.EMAIL_SUBSCRIPTION) == user.email) { // TODO Check subscribe
+                binding.btnSubscribe.visibility = View.GONE
+                binding.btnCancelSubscribe.visibility = View.VISIBLE
+                binding.tvSubscribeDescription.visibility = View.VISIBLE
+                binding.tvSubscribeDescription.text =
+                    "Subscrito a versión premium con tarjeta **** ${preferencesHelper.getStringPreference(PreferencesHelper.CREDIT_CARD_SUBSCRIPTION)}"
+            } else {
+                binding.tvSubscribeDescription.visibility = View.GONE
+                binding.btnCancelSubscribe.visibility = View.GONE
+                binding.btnSubscribe.visibility = View.VISIBLE
+            }
+
             return
         }
+        binding.btnSubscribe.visibility = View.GONE
+        binding.btnCancelSubscribe.visibility = View.GONE
+        binding.tvSubscribeDescription.visibility = View.GONE
         binding.titleName.visibility = View.GONE
         binding.profilePicture.setImageDrawable(getDrawable(R.drawable.ic_baseline_person_24))
         binding.signInOutText.text = getString(R.string.sign_in_with_google)
@@ -123,8 +202,17 @@ class StartLoginActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Check if user is signed in (non-null) and update UI accordingly.
+        val currentUser = auth.currentUser
+        updateUI(currentUser)
+    }
+
     companion object {
         private const val TAG = "GoogleActivity"
+        private const val DATABASE_NAME = "subscribed_users"
+        private const val DATABASE_USERS_FIELD = "users"
         private const val RC_SIGN_IN = 9001
     }
 }

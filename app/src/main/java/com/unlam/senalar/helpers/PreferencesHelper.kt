@@ -29,5 +29,8 @@ class PreferencesHelper(context: Context) {
         const val SOUND_ON_PREF = "SOUND_ON_PREF"
         const val LANGUAGE_TRANSLATION = "LANG_TRANSLATION"
         const val COUNTRY_TRANSLATION = "COUNTRY_TRANSLATION"
+        const val CREDIT_CARD_SUBSCRIPTION = "CREDIT_CARD_SUBSCRIPTION"
+        const val EMAIL_SUBSCRIPTION = "EMAIL_SUBSCRIPTION"
+        const val IS_USER_SUBSCRIBED = "IS_USER_SUBSCRIBED"
     }
 }

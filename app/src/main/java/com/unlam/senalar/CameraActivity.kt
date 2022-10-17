@@ -815,7 +815,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val MIN_DETECTION_ACTION = 10
         private const val PREDICTION_SECONDS_WINDOW = 10
         private const val SAME_WORD_SECONDS_WINDOW = 5
-        private const val NEW_WORD_SECONDS_WINDOW = 2
+        private const val NEW_WORD_SECONDS_WINDOW = 1
         private const val DONT_DETECT_SECONDS_WINDOW = 4
         private const val DYNAMIC_SCORE_THRESHOLD = 0.30
 
