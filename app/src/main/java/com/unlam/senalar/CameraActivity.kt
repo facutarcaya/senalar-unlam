@@ -17,6 +17,8 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.util.Range
 import android.view.LayoutInflater
+import android.view.View
+import android.view.WindowManager
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
@@ -30,10 +32,6 @@ import androidx.core.content.ContextCompat
 import com.unlam.senalar.connection.ClientPC
 import com.unlam.senalar.databinding.ActivityCameraBinding
 import com.unlam.senalar.databinding.CameraUiContainerBinding
-import com.unlam.senalar.handlers.CalculateUtils
-import com.unlam.senalar.handlers.HandActionClassifier
-import com.unlam.senalar.handlers.HandClassifier
-import com.unlam.senalar.handlers.HandGestureClassifier
 import com.unlam.senalar.helpers.LanguageHelper
 import com.unlam.senalar.helpers.Predictions
 import com.unlam.senalar.helpers.PreferencesHelper
@@ -43,10 +41,12 @@ import com.google.gson.reflect.TypeToken
 import com.google.mediapipe.solutions.hands.Hands
 import com.google.mediapipe.solutions.hands.HandsOptions
 import com.google.mediapipe.solutions.hands.HandsResult
+import com.unlam.senalar.handlers.*
 import org.tensorflow.lite.support.label.Category
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 
 @androidx.camera.core.ExperimentalGetImage
@@ -55,7 +55,7 @@ import java.util.concurrent.Executors
 @androidx.camera.lifecycle.ExperimentalUseCaseGroupLifecycle
 class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
-    private val debugMode = true
+    private val debugMode = false
 
     private lateinit var binding : ActivityCameraBinding
     private lateinit var cameraUiContainerBinding: CameraUiContainerBinding
@@ -66,13 +66,18 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // Model variables
     private var handClassifier: HandClassifier? = null
     private var handWordsClassifier: HandActionClassifier? = null
-    private var handNumbersClassifier: HandGestureClassifier? = null
+    private var handWordsPredictionClassifier: HandActionClassifier? = null
+    private var handNumbersClassifier: HandNumberClassifier? = null
     private var handLettersClassifier: HandGestureClassifier? = null
     private var isActionDetection = true
-    private var scoreThreshold = 0.40 // Min score to assume inference is correct
+    private var scoreThreshold = DYNAMIC_SCORE_THRESHOLD // Min score to assume inference is correct
     private var modelFps = 16 // Model FPS
+    private var currentModel = "Inicio"
+    private var isPredictionModel = false
 
     private var lastInferenceStartTime: Long = 0
+    private var lastPredictionStartTime: Long = 0
+    private var lastDetectionStartTime: Long = 0
 
     // Saves the last result of the analysis
     private var lastResult : String = "Nothing"
@@ -119,6 +124,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
         // Initialize preferences
         preferencesHelper = PreferencesHelper(this.applicationContext)
 
@@ -157,7 +164,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun loadPredictionsFile() {
         lateinit var jsonString: String
         try {
-            jsonString = this.assets.open("predictions.json")
+            jsonString = this.assets.open("predictions/predictions_${languageTranslation}.json")
                 .bufferedReader()
                 .use { it.readText() }
 
@@ -228,24 +235,42 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun initializeModelButtons() {
         cameraUiContainerBinding.btnNumbers.setOnClickListener {
+            cameraUiContainerBinding.btnNumbers.setImageDrawable(getDrawable(R.drawable.numbers_selected))
+            cameraUiContainerBinding.btnWords.setImageDrawable(getDrawable(R.drawable.words_not_selected))
+            cameraUiContainerBinding.btnLetters.setImageDrawable(getDrawable(R.drawable.letters_not_selected))
+
             handClassifier = handNumbersClassifier
             isActionDetection = false
             scoreThreshold = 0.25
             modelFps = 5
+            currentModel = "Números"
+            isPredictionModel = false
         }
 
         cameraUiContainerBinding.btnLetters.setOnClickListener {
+            cameraUiContainerBinding.btnNumbers.setImageDrawable(getDrawable(R.drawable.numbers_not_selected))
+            cameraUiContainerBinding.btnWords.setImageDrawable(getDrawable(R.drawable.words_not_selected))
+            cameraUiContainerBinding.btnLetters.setImageDrawable(getDrawable(R.drawable.letters_selected))
+
             handClassifier = handLettersClassifier
             isActionDetection = false
             scoreThreshold = 0.25
             modelFps = 5
+            currentModel = "Letras"
+            isPredictionModel = false
         }
 
         cameraUiContainerBinding.btnWords.setOnClickListener {
+            cameraUiContainerBinding.btnNumbers.setImageDrawable(getDrawable(R.drawable.numbers_not_selected))
+            cameraUiContainerBinding.btnWords.setImageDrawable(getDrawable(R.drawable.words_selected))
+            cameraUiContainerBinding.btnLetters.setImageDrawable(getDrawable(R.drawable.letters_not_selected))
+
             handClassifier = handWordsClassifier
             isActionDetection = true
-            scoreThreshold = 0.40
+            scoreThreshold = DYNAMIC_SCORE_THRESHOLD
             modelFps = 16
+            currentModel = "Inicio"
+            isPredictionModel = false
         }
     }
 
@@ -458,7 +483,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // Check to ensure that we only run inference at a frequency required by the
             // model, within an acceptable error range (e.g. 10%). Discard the frames
             // that comes too early.
-            if (diff * modelFps >= 1000 /* milliseconds */ * (1 - MODEL_FPS_ERROR_RANGE)) {
+            if (diff * modelFps >= MILLIS_IN_SECONDS /* milliseconds */ * (1 - MODEL_FPS_ERROR_RANGE)) {
 
                 lastInferenceStartTime = currentTime
 
@@ -467,25 +492,35 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     // Run inference using the TFLite model.
 
                     val results = classifier.classify(handsResult)
-                    val inputFps = 1000f / diff
+                    val inputFps = MILLIS_IN_SECONDS / diff
 
                     showResultsInDebug(results)
 
                     val newWord = sanitizeNewWord(results[0].label)
                     val newWordScore = results[0].score
 
-                    if (!muteOn && newWord != lastResult && newWordScore >= scoreThreshold) {
+                    if (!muteOn &&
+                        (newWord != lastResult || ((currentTime - lastDetectionStartTime) / MILLIS_IN_SECONDS) > SAME_WORD_SECONDS_WINDOW) &&
+                        newWordScore >= scoreThreshold &&
+                        (((currentTime - lastDetectionStartTime) / MILLIS_IN_SECONDS) > NEW_WORD_SECONDS_WINDOW)) {
                         if (newWord != actionLastResult) {
                             detectionCount = 0
                             actionLastResult = newWord
                         } else {
                             detectionCount++
                             if (detectionCount >= MIN_DETECTION_ACTION) {
-                                processWord(lastResult, newWord)
-                                lastResult = newWord
-                                detectionCount = 0
+                                if (!isPredictionModel || ((currentTime - lastPredictionStartTime) / MILLIS_IN_SECONDS) > DONT_DETECT_SECONDS_WINDOW) {
+                                    processWord(lastResult, newWord)
+                                    lastResult = newWord
+                                    detectionCount = 0
+                                    lastDetectionStartTime = SystemClock.uptimeMillis()
+                                }
                             }
                         }
+                    }
+
+                    if (isPredictionModel && ((currentTime - lastPredictionStartTime) / MILLIS_IN_SECONDS) > PREDICTION_SECONDS_WINDOW ) {
+                        returnToBaseModel()
                     }
 
                     if (inputFps < modelFps * (1 - MODEL_FPS_ERROR_RANGE)) {
@@ -501,11 +536,68 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    private fun returnToBaseModel() {
+        if (handWordsClassifier != null) {
+            handWordsClassifier?.close()
+            handWordsClassifier = null
+        }
+
+        handWordsClassifier = HandActionClassifier.createHandActionClassifier(
+            this,
+            "dynamic/base_model/base_model_model.tflite",
+            "dynamic/base_model/base_model_labels_${languageTranslation}.txt"
+        )
+        handClassifier = handWordsClassifier
+        scoreThreshold = DYNAMIC_SCORE_THRESHOLD
+        currentModel = "Inicio"
+        isPredictionModel = false
+    }
+
     private fun processWord(lastWord: String, newWord: String) {
         val replacedWord = searchForPredictions(lastWord, newWord)
         addWordToSubtitle(replacedWord)
         speakThroughTTS(replacedWord)
         sendToPC(replacedWord)
+        changeDetectionModel(newWord)
+    }
+
+    private fun changeDetectionModel(newWord: String) {
+        if (isActionDetection) {
+            predictionsFile.sentences?.let { sentences ->
+                sentences[newWord.lowercase()]?.let { newModelName ->
+                    if (newModelName == "numbers_model") {
+                        // TODO CLICK ON NUMBERS BTN
+                        return
+                    }
+                    if (newModelName == "letters_model") {
+                        // TODO CLICK ON LETTERS BTN
+                        return
+                    }
+
+                    if (handWordsPredictionClassifier != null) {
+                        handWordsPredictionClassifier?.close()
+                        handWordsPredictionClassifier = null
+                    }
+
+                    handWordsPredictionClassifier = HandActionClassifier.createHandActionClassifier(
+                        this,
+                        "dynamic/models/$newModelName/$newModelName.tflite",
+                        "dynamic/models/$newModelName/${newModelName}_labels_${languageTranslation}.txt"
+                    )
+
+                    handClassifier = handWordsPredictionClassifier
+
+                    currentModel = newWord
+                    isPredictionModel = true
+                    lastPredictionStartTime = SystemClock.uptimeMillis()
+
+                    return
+                }
+                if (isPredictionModel) {
+                    returnToBaseModel()
+                }
+            }
+        }
     }
 
     private fun searchForPredictions(lastWord: String, newWord: String): String {
@@ -549,11 +641,40 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (debugMode) {
             runOnUiThread {
                 cameraUiContainerBinding.tvDetectedItem0.text =
-                    results[0].label + ": " + String.format("%.2f", results[0].score * 100) + "%"
+                    sanitizeNewWord(results[0].label) + ": " + String.format("%.2f", results[0].score * 100) + "%"
+                cameraUiContainerBinding.pgDetectedItem0.visibility = View.GONE
                 cameraUiContainerBinding.tvDetectedItem1.text =
-                    results[1].label + ": " + String.format("%.2f", results[1].score * 100) + "%"
+                    sanitizeNewWord(results[1].label) + ": " + String.format("%.2f", results[1].score * 100) + "%"
+                cameraUiContainerBinding.pgDetectedItem1.visibility = View.GONE
                 cameraUiContainerBinding.tvDetectedItem2.text =
-                    results[2].label + ": " + String.format("%.2f", results[2].score * 100) + "%"
+                    sanitizeNewWord(results[2].label) + ": " + String.format("%.2f", results[2].score * 100) + "%"
+                cameraUiContainerBinding.pgDetectedItem2.visibility = View.GONE
+                cameraUiContainerBinding.tvModel.text = "Etapa: $currentModel"
+            }
+        } else {
+            runOnUiThread {
+                cameraUiContainerBinding.tvDetectedItem0.text =
+                    sanitizeNewWord(results[0].label) + ":"
+                cameraUiContainerBinding.pgDetectedItem0.visibility = View.VISIBLE
+                cameraUiContainerBinding.pgDetectedItem0.progress = if ((results[0].score * 100 / scoreThreshold) >= 100) {
+                        100 } else {
+                    (results[2].score * 100 / scoreThreshold)
+                }.toInt()
+                cameraUiContainerBinding.tvDetectedItem1.text =
+                            sanitizeNewWord(results[1].label) + ":"
+                cameraUiContainerBinding.pgDetectedItem1.visibility = View.VISIBLE
+                cameraUiContainerBinding.pgDetectedItem1.progress = if ((results[1].score * 100 / scoreThreshold) >= 100) {
+                    100 } else {
+                    (results[2].score * 100 / scoreThreshold)
+                }.toInt()
+                cameraUiContainerBinding.tvDetectedItem2.text =
+                            sanitizeNewWord(results[2].label) + ":"
+                cameraUiContainerBinding.pgDetectedItem2.visibility = View.VISIBLE
+                cameraUiContainerBinding.pgDetectedItem2.progress = if ((results[1].score * 100 / scoreThreshold) >= 100) {
+                    100 } else {
+                    (results[2].score * 100 / scoreThreshold)
+                }.toInt()
+                cameraUiContainerBinding.tvModel.text = "Etapa: $currentModel"
             }
         }
     }
@@ -605,7 +726,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             handWordsClassifier = HandActionClassifier.createHandActionClassifier(
-                this, "words_model.tflite", "words_labels_${languageTranslation}.txt"
+                this,
+                "dynamic/base_model/base_model_model.tflite",
+                "dynamic/base_model/base_model_labels_${languageTranslation}.txt"
             )
 
             Log.d(TAG, "Words Classifier created.")
@@ -615,8 +738,10 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 handNumbersClassifier = null
             }
 
-            handNumbersClassifier = HandGestureClassifier.createHandGestureClassifier(
-                this, "numbers_model.tflite", "numbers_labels.txt"
+            handNumbersClassifier = HandNumberClassifier.createHandNumberClassifier(
+                this,
+                "static/numbers_model.tflite",
+                "static/numbers_labels.txt"
             )
 
             Log.d(TAG, "Numbers Classifier created.")
@@ -627,7 +752,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             handLettersClassifier = HandGestureClassifier.createHandGestureClassifier(
-                this, "numbers_model.tflite", "numbers_labels.txt"
+                this,
+                "static/letters_model.tflite",
+                "static/letters_labels.txt"
             )
 
             Log.d(TAG, "Letters Classifier created.")
@@ -681,12 +808,21 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val RUN_ON_GPU = true
 
         //Tensorflow
-        private const val REQUEST_CODE_PERMISSIONS = 10
         private const val TAG = "TFLite-VidClassify"
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         private const val MODEL_FPS_ERROR_RANGE = 0.1 // Acceptable error range in fps.
         private const val MAX_CAPTURE_FPS = 20
         private const val MIN_DETECTION_ACTION = 10
+        private const val PREDICTION_SECONDS_WINDOW = 10
+        private const val SAME_WORD_SECONDS_WINDOW = 5
+        private const val NEW_WORD_SECONDS_WINDOW = 1
+        private const val DONT_DETECT_SECONDS_WINDOW = 4
+        private const val DYNAMIC_SCORE_THRESHOLD = 0.30
+
+        // Constants
+        private const val MILLIS_IN_SECONDS = 1000f
+        private const val REQUEST_CODE_PERMISSIONS = 10
+
     }
 
     override fun onDestroy() {

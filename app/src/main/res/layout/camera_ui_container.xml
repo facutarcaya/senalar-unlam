@@ -108,7 +108,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_baseline_cast_24"/>
 
-    <com.google.android.material.button.MaterialButtonToggleGroup
+    <LinearLayout
         android:id="@+id/toggleButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -117,72 +117,131 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_margin="16dp"
-        android:gravity="center"
-        app:singleSelection="true"
-        app:selectionRequired="true"
-        app:checkedButton="@id/btnWords">
+        android:gravity="center">
 
-        <Button
+        <ImageView
             android:id="@+id/btnNumbers"
-            style="?attr/materialButtonOutlinedStyle"
-            android:backgroundTint="@color/contrast_light_blue"
-            android:textColor="@color/main_light_blue"
+            android:src="@drawable/numbers_not_selected"
+            android:layout_marginTop="16dp"
             android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:textAllCaps="false"
-            android:text="123" />
+            android:layout_height="60dp"/>
 
-        <Button
+        <ImageView
             android:id="@+id/btnLetters"
-            style="?attr/materialButtonOutlinedStyle"
-            android:backgroundTint="@color/contrast_light_blue"
-            android:textColor="@color/main_light_blue"
+            android:src="@drawable/letters_not_selected"
+            android:layout_marginTop="16dp"
             android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:textAllCaps="false"
-            android:text="A-Z" />
+            android:layout_height="60dp"/>
 
-        <Button
+        <ImageView
             android:id="@+id/btnWords"
-            style="?attr/materialButtonOutlinedStyle"
-            android:backgroundTint="@color/contrast_light_blue"
-            android:textColor="@color/main_light_blue"
+            android:src="@drawable/words_selected"
+            android:layout_marginTop="16dp"
             android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:textAllCaps="false"
-            android:text="Pal" />
-    </com.google.android.material.button.MaterialButtonToggleGroup>
+            android:layout_height="60dp"/>
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:background="@color/main_light_blue_transparent"
+        android:gravity="end"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnSwitchFlash">
 
-        <TextView
-            android:id="@+id/tvDetectedItem0"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Debug Text: 0.78%"
-            android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnSwitchFlash">
+
+            <TextView
+                android:id="@+id/tvDetectedItem0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Seña 1:"
+                android:textColor="@color/contrast_light_blue"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+            <ProgressBar
+                android:id="@+id/pgDetectedItem0"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_gravity="center"
+                android:layout_width="100dp"
+                android:layout_height="30dp"
+                android:scaleY="5"
+                android:layout_weight="1" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnSwitchFlash">
+
+            <TextView
+                android:id="@+id/tvDetectedItem1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Seña 2:"
+                android:textColor="@color/contrast_light_blue"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+            <ProgressBar
+                android:id="@+id/pgDetectedItem1"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_gravity="center"
+                android:layout_width="100dp"
+                android:layout_height="30dp"
+                android:scaleY="5"
+                android:layout_weight="1" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnSwitchFlash">
+
+            <TextView
+                android:id="@+id/tvDetectedItem2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Seña 3:"
+                android:textColor="@color/contrast_light_blue"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+            <ProgressBar
+                android:id="@+id/pgDetectedItem2"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_gravity="center"
+                android:layout_width="100dp"
+                android:layout_height="30dp"
+                android:scaleY="5"
+                android:layout_weight="1" />
+
+
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/tvDetectedItem1"
+            android:id="@+id/tvModel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Debug Text: 0.78%"
+            android:text="Etapa: Inicio"
+            android:textColor="@color/contrast_light_blue"
             android:textSize="20sp"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:id="@+id/tvDetectedItem2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Debug Text: 0.78%"
-            android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
