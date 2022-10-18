@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -59,27 +60,27 @@ class StartLoginActivity : AppCompatActivity() {
         }
 
         binding.btnSubscribe.setOnClickListener {
-            auth.currentUser?.let {
-                writeUser(it)
-            }
+            startActivity(Intent(this, StartSubscription::class.java))
         }
 
         binding.btnCancelSubscribe.setOnClickListener {
-            auth.currentUser?.uid?.let {
-                database.getReference(DATABASE_NAME).child(DATABASE_USERS_FIELD).child(it).removeValue().addOnSuccessListener {
-                    preferencesHelper.setBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED, false)
-                }
-            }
-        }
-    }
+            val builder = AlertDialog.Builder(this)
 
-    private fun writeUser(user: FirebaseUser) {
-        database.getReference(DATABASE_NAME).child(DATABASE_USERS_FIELD).child(user.uid).setValue(SubscribedUser(user.email, "5809")).addOnSuccessListener {
-            user.email?.let {
-                preferencesHelper.setStringPreference(PreferencesHelper.EMAIL_SUBSCRIPTION, it)
+            with(builder)
+            {
+                setTitle("Cancelar subscripción")
+                setMessage("¿Está seguro que desea cancelar la subscripción?")
+                setPositiveButton("ACEPTAR") { dialogInterface, i ->
+                    auth.currentUser?.uid?.let {
+                        database.getReference(DATABASE_NAME).child(DATABASE_USERS_FIELD).child(it).removeValue().addOnSuccessListener {
+                            preferencesHelper.setBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED, false)
+                            updateUI(auth.currentUser)
+                        }
+                    }
+                }
+                setNegativeButton("CANCELAR") {dialogInterface, i -> /** DO NOTHING*/}
+                show()
             }
-            preferencesHelper.setStringPreference(PreferencesHelper.CREDIT_CARD_SUBSCRIPTION, "5980")
-            preferencesHelper.setBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED, true)
         }
     }
 
@@ -94,9 +95,9 @@ class StartLoginActivity : AppCompatActivity() {
         user.email?.let { email ->
             database.getReference(DATABASE_NAME).child(DATABASE_USERS_FIELD).child(user.uid).get().addOnSuccessListener {
                 try {
-                    var subscribedUser = Gson().fromJson(it.value.toString(), SubscribedUser::class.java)
-                    preferencesHelper.setBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED, true)
+                    val subscribedUser = Gson().fromJson(it.value.toString(), SubscribedUser::class.java)
                     subscribedUser.email?.let {
+                        preferencesHelper.setBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED, true)
                         preferencesHelper.setStringPreference(PreferencesHelper.EMAIL_SUBSCRIPTION, it)
                     }
                     subscribedUser.creditCardDigits?.let {

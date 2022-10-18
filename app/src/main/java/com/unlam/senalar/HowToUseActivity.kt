@@ -9,6 +9,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import android.util.Log
 import com.unlam.senalar.databinding.ActivityHowToUseBinding
+import com.unlam.senalar.helpers.PreferencesHelper
 
 const val GAME_LENGTH_MILLISECONDS = 3000L
 const val AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
@@ -42,8 +43,10 @@ class HowToUseActivity : AppCompatActivity() {
         MobileAds.setRequestConfiguration(
             RequestConfiguration.Builder().setTestDeviceIds(listOf("ABCDEF012345")).build()
         )
-        startGame()
 
+        if (!PreferencesHelper(this).getBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED)) {
+            startGame()
+        }
         binding.btnClose.setOnClickListener {
             this.finish()
         }

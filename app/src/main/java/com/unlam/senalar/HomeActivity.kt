@@ -3,6 +3,7 @@ package com.unlam.senalar
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import com.unlam.senalar.databinding.ActivityHomeBinding
 import com.unlam.senalar.helpers.LanguageHelper
 import com.unlam.senalar.helpers.PreferencesHelper
@@ -40,6 +41,11 @@ class HomeActivity : AppCompatActivity() {
         val adRequest = AdRequest.Builder().build()
         mAdView.loadAd(adRequest)
 
+        mAdView.visibility = if (!preferencesHelper.getBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED)) {
+            View.VISIBLE
+        } else {
+            View.INVISIBLE
+        }
     }
 
     override fun onResume() {
@@ -49,6 +55,12 @@ class HomeActivity : AppCompatActivity() {
             binding.btnUserLogin.setImageDrawable(getDrawable(R.drawable.ic_baseline_person_24))
         } else {
             binding.btnUserLogin.setImageDrawable(getDrawable(R.drawable.ic_baseline_person_outline_24))
+        }
+
+        mAdView.visibility = if (!preferencesHelper.getBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED)) {
+            View.VISIBLE
+        } else {
+            View.INVISIBLE
         }
     }
 
