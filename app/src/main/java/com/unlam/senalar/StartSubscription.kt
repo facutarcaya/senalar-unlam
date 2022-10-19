@@ -81,7 +81,7 @@ class StartSubscription : AppCompatActivity() {
 
     private fun writeUser(user: FirebaseUser) {
         database.getReference(DATABASE_NAME).child(DATABASE_USERS_FIELD).child(user.uid).setValue(
-            SubscribedUser(cardForm.cardNumber.takeLast(4), user.email)
+            SubscribedUser(user.email, cardForm.cardNumber.takeLast(4))
         ).addOnSuccessListener {
             user.email?.let {
                 preferencesHelper.setStringPreference(PreferencesHelper.EMAIL_SUBSCRIPTION, it)
