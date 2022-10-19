@@ -158,6 +158,7 @@ class StartLoginActivity : AppCompatActivity() {
             .addOnCompleteListener(this) {
                 auth.signOut()
                 updateUI(null)
+                preferencesHelper.setBooleanPreference(PreferencesHelper.IS_USER_SUBSCRIBED, false)
             }
     }
 
