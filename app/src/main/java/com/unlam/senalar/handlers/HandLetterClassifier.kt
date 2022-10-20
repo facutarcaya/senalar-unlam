@@ -132,7 +132,7 @@ class HandLetterClassifier private constructor(
     }
 
     private fun flipLandmarkPoint(landMarkPoint: Float): Float {
-        return 1.0f - landMarkPoint
+        return landMarkPoint * -1
     }
 
     override fun close() {
