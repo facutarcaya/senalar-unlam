@@ -63,6 +63,9 @@
     "necesitar": "necesitar_model",
     "ayuda": "ayuda_model",
     "colectivo": "numbers_model",
-    "subte": "letters_model"
+    "subte": "letters_model",
+    "donde": "donde_model",
+    "saludo": "saludo_model",
+    "nombre": "letters_model"
   }
 }

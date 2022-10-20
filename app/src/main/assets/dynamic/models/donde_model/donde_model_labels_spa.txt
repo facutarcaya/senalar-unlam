@@ -1,0 +1,7 @@
+Comprar_R
+Hospital_R
+Colectivo_R
+Subte_R
+Tren_R
+Negocio_R
+Pagar_R

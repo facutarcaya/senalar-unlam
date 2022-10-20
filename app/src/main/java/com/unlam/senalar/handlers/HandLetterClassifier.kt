@@ -1,6 +1,7 @@
 package com.unlam.senalar.handlers
 
 import android.content.Context
+import android.util.Log
 import com.google.mediapipe.formats.proto.LandmarkProto
 import com.google.mediapipe.solutions.hands.HandsResult
 import org.tensorflow.lite.Interpreter
@@ -8,7 +9,7 @@ import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.label.Category
 import kotlin.math.max
 
-class HandGestureClassifier private constructor(
+class HandLetterClassifier private constructor(
     private val interpreter: Interpreter,
     private val labels: List<String>,
     private val maxResults: Int?
@@ -20,7 +21,7 @@ class HandGestureClassifier private constructor(
         private const val AXIS_LANDMARKS_SIZE = 2
         private const val NO_RESULT = "Esperando..."
 
-        fun createHandGestureClassifier(context: Context, model_path: String, labels_path: String): HandGestureClassifier {
+        fun createHandLetterClassifier(context: Context, model_path: String, labels_path: String): HandLetterClassifier {
             // Create a TFLite interpreter from the TFLite model file.
             val interpreterOptions = Interpreter.Options()
             interpreterOptions.setNumThreads(NUM_THREADS)
@@ -30,13 +31,12 @@ class HandGestureClassifier private constructor(
             // Load the label file.
             val labels = FileUtil.loadLabels(context, labels_path)
 
-            return HandGestureClassifier(interpreter, labels, MAX_OPTIONS)
+            return HandLetterClassifier(interpreter, labels, MAX_OPTIONS)
         }
     }
 
     override fun classify(handsResult: HandsResult): List<Category> {
         var leftHandLandmarks : FloatArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
-        var rightHandLandmarks : FloatArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
 
         val numHands =  handsResult.multiHandLandmarks().size
 
@@ -50,8 +50,11 @@ class HandGestureClassifier private constructor(
 
         val indexHands = 0
 
-        leftHandLandmarks = getLandMarksAsUniArray(handsResult.multiHandLandmarks()[indexHands].landmarkList, false)
-        rightHandLandmarks = getLandMarksAsUniArray(handsResult.multiHandLandmarks()[indexHands].landmarkList, true)
+        leftHandLandmarks = if (handsResult.multiHandedness()[indexHands].label == "Left") {
+            getLandMarksAsUniArray(handsResult.multiHandLandmarks()[indexHands].landmarkList, true)
+        } else {
+            getLandMarksAsUniArray(handsResult.multiHandLandmarks()[indexHands].landmarkList, false)
+        }
 
 
         val outputval = Array(1) {
@@ -64,11 +67,7 @@ class HandGestureClassifier private constructor(
 
         val categoryList1 = createCategoryList(outputval[0])
 
-        interpreter.run(rightHandLandmarks, outputval)
-
-        val categoryList2 = createCategoryList(outputval[0])
-
-        return if (categoryList1[0].score > categoryList2[0].score) categoryList1 else categoryList2
+        return categoryList1
     }
 
     private fun createCategoryList(outputsInFloat: FloatArray): List<Category> {
@@ -112,10 +111,20 @@ class HandGestureClassifier private constructor(
         val uniArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
         var indexArray = 0
 
+        var firstLandmark = true
+        var baseX = 0f
+        var baseY = 0f
         for (landmark in landmarks) {
-            uniArray[indexArray] = if (flipLandmark) flipLandmarkPoint(landmark.x) else landmark.x
+            if (firstLandmark) {
+                baseX = landmark.x
+                baseY = landmark.y
+                firstLandmark = false
+            }
+            val landmarkX = landmark.x - baseX
+            val landmarkY = landmark.y - baseY
+            uniArray[indexArray] = if (flipLandmark) flipLandmarkPoint(landmarkX) else landmarkX
             indexArray++
-            uniArray[indexArray] = landmark.y
+            uniArray[indexArray] = landmarkY
             indexArray++
         }
 
