@@ -46,7 +46,6 @@ import org.tensorflow.lite.support.label.Category
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 
 @androidx.camera.core.ExperimentalGetImage
@@ -55,7 +54,7 @@ import java.util.concurrent.TimeUnit
 @androidx.camera.lifecycle.ExperimentalUseCaseGroupLifecycle
 class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
-    private val debugMode = false
+    private val debugMode = true
 
     private lateinit var binding : ActivityCameraBinding
     private lateinit var cameraUiContainerBinding: CameraUiContainerBinding
@@ -68,7 +67,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var handWordsClassifier: HandActionClassifier? = null
     private var handWordsPredictionClassifier: HandActionClassifier? = null
     private var handNumbersClassifier: HandNumberClassifier? = null
-    private var handLettersClassifier: HandGestureClassifier? = null
+    private var handLettersClassifier: HandLetterClassifier? = null
     private var isActionDetection = true
     private var scoreThreshold = DYNAMIC_SCORE_THRESHOLD // Min score to assume inference is correct
     private var modelFps = 16 // Model FPS
@@ -566,11 +565,15 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             predictionsFile.sentences?.let { sentences ->
                 sentences[newWord.lowercase()]?.let { newModelName ->
                     if (newModelName == "numbers_model") {
-                        // TODO CLICK ON NUMBERS BTN
+                        runOnUiThread {
+                            cameraUiContainerBinding.btnNumbers.performClick()
+                        }
                         return
                     }
                     if (newModelName == "letters_model") {
-                        // TODO CLICK ON LETTERS BTN
+                        runOnUiThread {
+                            cameraUiContainerBinding.btnLetters.performClick()
+                        }
                         return
                     }
 
@@ -751,7 +754,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 handLettersClassifier = null
             }
 
-            handLettersClassifier = HandGestureClassifier.createHandGestureClassifier(
+            handLettersClassifier = HandLetterClassifier.createHandLetterClassifier(
                 this,
                 "static/letters_model.tflite",
                 "static/letters_labels.txt"
@@ -815,7 +818,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val MIN_DETECTION_ACTION = 10
         private const val PREDICTION_SECONDS_WINDOW = 10
         private const val SAME_WORD_SECONDS_WINDOW = 5
-        private const val NEW_WORD_SECONDS_WINDOW = 1
+        private const val NEW_WORD_SECONDS_WINDOW = 2
         private const val DONT_DETECT_SECONDS_WINDOW = 4
         private const val DYNAMIC_SCORE_THRESHOLD = 0.30
 

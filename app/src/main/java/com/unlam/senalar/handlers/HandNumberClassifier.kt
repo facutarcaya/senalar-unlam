@@ -37,7 +37,6 @@ class HandNumberClassifier private constructor(
 
     override fun classify(handsResult: HandsResult): List<Category> {
         var leftHandLandmarks : FloatArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
-        var rightHandLandmarks : FloatArray = FloatArray(HAND_LANDMARKS_SIZE * AXIS_LANDMARKS_SIZE)
 
         val numHands =  handsResult.multiHandLandmarks().size
 
@@ -127,12 +126,6 @@ class HandNumberClassifier private constructor(
             indexArray++
             uniArray[indexArray] = landmarkY
             indexArray++
-        }
-
-        if (flipLandmark) {
-            Log.i("UNIARRAY_FLIP", uniArray.contentToString())
-        } else {
-            Log.i("UNIARRAY", uniArray.contentToString())
         }
 
         return uniArray
