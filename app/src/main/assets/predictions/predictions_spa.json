@@ -36,7 +36,10 @@
       "poder": "puedo"
     },
     "saber": {
-      "que": "que es"
+      "que": "que es",
+      "como": "como es",
+      "cuanto": "cuanto es",
+      "cuando": "cuando es"
     },
     "muchas gracias": {
       "saludo": "chau"
