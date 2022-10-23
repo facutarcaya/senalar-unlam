@@ -54,7 +54,7 @@ import java.util.concurrent.Executors
 @androidx.camera.lifecycle.ExperimentalUseCaseGroupLifecycle
 class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
-    private val debugMode = true
+    private val debugMode = false
 
     private lateinit var binding : ActivityCameraBinding
     private lateinit var cameraUiContainerBinding: CameraUiContainerBinding
@@ -117,6 +117,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // Predictions variables
     private lateinit var predictionsFile: Predictions
+
+    // Letters to word variables
+    private var letterToWord = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityCameraBinding.inflate(layoutInflater)
@@ -240,7 +243,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             handClassifier = handNumbersClassifier
             isActionDetection = false
-            scoreThreshold = 0.25
+            scoreThreshold = NUMBERS_SCORE_THRESHOLD
             modelFps = 5
             currentModel = "Números"
             isPredictionModel = false
@@ -267,6 +270,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             handClassifier = handWordsClassifier
             isActionDetection = true
             scoreThreshold = DYNAMIC_SCORE_THRESHOLD
+            lastDetectionStartTime = SystemClock.uptimeMillis()
             modelFps = 16
             currentModel = "Inicio"
             isPredictionModel = false
@@ -547,17 +551,42 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             "dynamic/base_model/base_model_labels_${languageTranslation}.txt"
         )
         handClassifier = handWordsClassifier
+        isActionDetection = true
         scoreThreshold = DYNAMIC_SCORE_THRESHOLD
+        lastDetectionStartTime = SystemClock.uptimeMillis()
+        modelFps = 16
         currentModel = "Inicio"
         isPredictionModel = false
     }
 
     private fun processWord(lastWord: String, newWord: String) {
-        val replacedWord = searchForPredictions(lastWord, newWord)
+        var replacedWord = searchForPredictions(lastWord, newWord)
+        replacedWord = searchForStopSign(replacedWord)
         addWordToSubtitle(replacedWord)
         speakThroughTTS(replacedWord)
         sendToPC(replacedWord)
         changeDetectionModel(newWord)
+    }
+
+    private fun searchForStopSign(replacedWord: String): String {
+        if (!isActionDetection) {
+            if (replacedWord.lowercase() != STOP_WORD) {
+                letterToWord += replacedWord
+            }
+        } else {
+            letterToWord = ""
+        }
+
+        return if (replacedWord.lowercase() == STOP_WORD && !isActionDetection) {
+            val newLetterToWord = letterToWord.capitalize()
+            letterToWord = ""
+            runOnUiThread {
+                cameraUiContainerBinding.btnWords.performClick()
+            }
+            newLetterToWord
+        } else {
+            replacedWord
+        }
     }
 
     private fun changeDetectionModel(newWord: String) {
@@ -593,6 +622,13 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     currentModel = newWord
                     isPredictionModel = true
                     lastPredictionStartTime = SystemClock.uptimeMillis()
+
+                    scoreThreshold = when(newWord.lowercase()) {
+                        "saber" -> 0.50
+                        else -> {
+                            DYNAMIC_SCORE_THRESHOLD
+                        }
+                    }
 
                     return
                 }
@@ -821,10 +857,12 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val NEW_WORD_SECONDS_WINDOW = 2
         private const val DONT_DETECT_SECONDS_WINDOW = 4
         private const val DYNAMIC_SCORE_THRESHOLD = 0.30
+        private const val NUMBERS_SCORE_THRESHOLD = 0.60
 
         // Constants
         private const val MILLIS_IN_SECONDS = 1000f
         private const val REQUEST_CODE_PERMISSIONS = 10
+        private const val STOP_WORD = "stop"
 
     }
 
