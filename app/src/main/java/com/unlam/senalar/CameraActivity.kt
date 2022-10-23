@@ -580,6 +580,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return if (replacedWord.lowercase() == STOP_WORD && !isActionDetection) {
             val newLetterToWord = letterToWord.capitalize()
             letterToWord = ""
+            runOnUiThread {
+                cameraUiContainerBinding.btnWords.performClick()
+            }
             newLetterToWord
         } else {
             replacedWord
