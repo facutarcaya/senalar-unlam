@@ -2,14 +2,17 @@ package com.unlam.senalar
 
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.text.method.ScrollingMovementMethod
+import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
-import android.util.Log
 import com.unlam.senalar.databinding.ActivityHowToUseBinding
 import com.unlam.senalar.helpers.PreferencesHelper
+
 
 const val GAME_LENGTH_MILLISECONDS = 3000L
 const val AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
@@ -23,12 +26,14 @@ class HowToUseActivity : AppCompatActivity() {
     private var mTimerMilliseconds = 0L
     private var TAG = "HowToUseActivity"
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityHowToUseBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+
+        val textView: TextView = findViewById(R.id.instrucciones)
+        textView.movementMethod = ScrollingMovementMethod()
 
         // Log the Mobile Ads SDK version.
         Log.d(TAG, "Google Mobile Ads SDK Version: " + MobileAds.getVersion())

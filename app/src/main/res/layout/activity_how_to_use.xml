@@ -4,31 +4,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/main_light_blue">
+    android:background="@color/main_light_blue"
+    android:scrollbarFadeDuration="0"
+    android:verticalScrollbarPosition="right"
+    android:visibility="visible">
 
     <ImageView
         android:id="@+id/btnClose"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_gravity="end"
+        android:layout_margin="8dp"
         android:src="@drawable/ic_baseline_close_24"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_margin="8dp"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tVAppTitle"
         android:layout_width="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         android:layout_height="wrap_content"
+        android:layout_margin="40dp"
         android:fontFamily="@font/baloo_thambi"
         android:text="@string/how_to_use_title"
         android:textAlignment="center"
         android:textColor="@color/contrast_light_blue"
         android:textSize="48sp"
-        android:layout_margin="40dp"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/timer"
@@ -37,6 +40,45 @@
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/baloo_thambi"
+        android:text="Para poder probar la aplicación hay que seguir éstos pasos. Comencemos!"
+        android:textAlignment="center"
+        android:textColor="@color/contrast_light_blue"
+        android:textSize="22sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tVAppTitle" />
+
+    <TextView
+        android:id="@+id/instrucciones"
+        android:layout_width="383dp"
+        android:layout_height="446dp"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/baloo_thambi"
+        android:isScrollContainer="false"
+        android:lineSpacingMultiplier="1.2"
+        android:nestedScrollingEnabled="true"
+        android:scrollIndicators="right"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:scrollbarFadeDuration="0"
+        android:scrollbars="vertical"
+        android:text="Primero, en la pantalla principal, hay que hacer click en el botón &quot;Iniciar Traducción&quot;. \nA continuación, se abrirá una pantalla donde veremos la cámara. \nAntes de empezar a probar, tenés elegir si querés traducir números, letras o palabras! Para eso, a la izquierda de la pantalla vas a ver las siguientes opciones: \n\t1. Opción 123: Para traducir números.\n\t2. Opción A-Z: Para traducir letras.\n\t3. Opción PAL: Para traducir palabras.\nPara elegir una opción, solo tenés que seleccionarla y listo! En cualquier momento de la traducción podés cambiar de opción y, de esta forma, podés intercalar la traducción de palabras con letras o números.\nAhora ya podés empezar a probar la aplicación! Para empezar la traducción hay que hacer click en el botón rojo (que indica que la traducción está pausada). A continuación vas a ver que dicho botón cambia a verde.\nAl realizar una seña, arriba a la derecha vas a ver unas barras que indican la seña que está detectando la aplicación y en la parte inferior de la pantalla, van a aparecer los subtítulos de lo que estás diciendo y lo vas a escuchar por el parlante!\nSi querés seguir traduciendo pero no querés que se escuche, podés silenciar la traducción haciendo click en el botón con forma de parlante.\nCuando quieras pausar la aplicación tenés que hacer click en el botón verde, el cual cambiará a rojo nuevamente. "
+        android:textColor="@color/contrast_light_blue"
+        android:textSize="20sp"
+        android:verticalScrollbarPosition="right"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/timer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/start"
+        app:layout_constraintVertical_bias="0.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
