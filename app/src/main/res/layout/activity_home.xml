@@ -110,14 +110,14 @@
             android:textStyle="bold" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnHowDoesItWork"
+            android:id="@+id/btnAvailableSigns"
             style="@style/Widget.Material3.Button.ElevatedButton"
             android:backgroundTint="@color/contrast_light_blue"
             android:textColor="@color/main_light_blue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
-            android:text="@string/how_it_works"
+            android:text="@string/available_signs"
             android:textSize="16sp"
             android:textStyle="bold" />
 

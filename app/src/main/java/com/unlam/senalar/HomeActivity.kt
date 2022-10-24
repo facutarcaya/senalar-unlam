@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import com.unlam.senalar.databinding.ActivityHomeBinding
 import com.unlam.senalar.helpers.LanguageHelper
 import com.unlam.senalar.helpers.PreferencesHelper
@@ -83,9 +84,8 @@ class HomeActivity : AppCompatActivity() {
             startActivity(Intent(this, HowToUseActivity::class.java))
         }
 
-        binding.btnHowDoesItWork.setOnClickListener {
-            // Aca se debería abrir un (full screen dialog? o modal?) explicando como funciona (es más un holder para otro botón)
-            // https://m3.material.io/components/dialogs/overview
+        binding.btnAvailableSigns.setOnClickListener {
+            Toast.makeText(this, "Estamos trabajando en esta sección", Toast.LENGTH_SHORT).show()
         }
 
         binding.cameraButton.setOnClickListener {

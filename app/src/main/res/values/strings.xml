@@ -6,7 +6,7 @@
     <string name="subscribe_description">La subscripción a la versión premium elimina los anuncios de la aplicación</string>
     <string name="subscribe_price">¡A sólo $150 por mes!</string>
     <string name="how_to_use">¿Cómo se usa?</string>
-    <string name="how_it_works">¿Cómo funciona?</string>
+    <string name="available_signs">Señas disponibles</string>
     <string name="start_translate">Iniciar traducción</string>
     <string name="text_sample">(EN ESTA SECCION APARECERAN LOS SUBTITULOS)</string>
     <string name="choose_language">"Idioma de traducción"</string>
@@ -15,7 +15,7 @@
     <string name="lang_spanish">Español</string>
     <string name="lang_english">English</string>
     <string name="lang_portuguese">Portuguese</string>
-    <string name="how_to_use_title">Cómo usar SeñalAR!</string>
+    <string name="how_to_use_title">¡Cómo usar SeñalAR!</string>
     <string name="your_web_client_id">481251153805-sjr3mpka5p9egd61ijrj35jpfb8hcq06.apps.googleusercontent.com</string>
     <string name="google_login">Google Login</string>
     <string name="sign_in_with_google">Entrar con Google</string>

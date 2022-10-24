@@ -1,7 +1,6 @@
 package com.unlam.senalar
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -86,8 +85,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // Select back camera as a default
     private var cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
-    // Flashlight variables
-    private var flashLightOn = false
+    // Char variables
+    private var chartOn = true
 
     // Mute variables
     private var muteOn = true
@@ -349,25 +348,15 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun initializeFlashButton() {
-        cameraUiContainerBinding.btnSwitchFlash.setOnClickListener {
-            val camManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-            var cameraId: String = ""
-            if (flashLightOn) {
-                try {
-                    getTorchCameraId(camManager)?.let { it1 -> camManager.setTorchMode(it1, false) }
-                    changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchFlash, getDrawable(R.drawable.ic_baseline_flash_off_24), null)
-                    flashLightOn = false
-                } catch (e: CameraAccessException) {
-                    e.printStackTrace()
-                }
+        cameraUiContainerBinding.btnSwitchChart.setOnClickListener {
+            if (chartOn) {
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchChart, getDrawable(R.drawable.ic_baseline_visibility_off_24), null)
+                cameraUiContainerBinding.chart.visibility = View.INVISIBLE
+                chartOn = false
             } else {
-                try {
-                    getTorchCameraId(camManager)?.let { it1 -> camManager.setTorchMode(it1, true) }
-                    changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchFlash, getDrawable(R.drawable.ic_baseline_flash_on_24), null)
-                    flashLightOn = true
-                } catch (e: CameraAccessException) {
-                    e.printStackTrace()
-                }
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchChart, getDrawable(R.drawable.ic_baseline_visibility_24), null)
+                cameraUiContainerBinding.chart.visibility = View.VISIBLE
+                chartOn = true
             }
         }
     }
