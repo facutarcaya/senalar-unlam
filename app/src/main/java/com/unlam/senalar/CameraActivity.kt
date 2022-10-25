@@ -847,7 +847,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val DONT_DETECT_SECONDS_WINDOW = 4
         private const val DYNAMIC_SCORE_THRESHOLD = 0.30
         private const val NUMBERS_SCORE_THRESHOLD = 0.45
-        private const val LETTERS_SCORE_THRESHOLD = 0.30
+        private const val LETTERS_SCORE_THRESHOLD = 0.45
 
         // Constants
         private const val MILLIS_IN_SECONDS = 1000f
