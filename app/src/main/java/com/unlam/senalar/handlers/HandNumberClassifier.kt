@@ -67,6 +67,18 @@ class HandNumberClassifier private constructor(
 
         val categoryList1 = createCategoryList(outputval[0])
 
+        if (categoryList1[0].label == "0_I" &&
+            categoryList1[1].label == "4_I" &&
+            categoryList1[1].score > 0.20) {
+
+            val newArrayList = arrayListOf(
+                Category(categoryList1[1].label, categoryList1[0].score),
+                Category(categoryList1[0].label, categoryList1[1].score),
+                Category(categoryList1[2].label, categoryList1[2].score)
+            )
+            return newArrayList
+        }
+
         return categoryList1
     }
 

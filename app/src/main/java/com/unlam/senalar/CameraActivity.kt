@@ -255,7 +255,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             handClassifier = handLettersClassifier
             isActionDetection = false
-            scoreThreshold = 0.25
+            scoreThreshold = LETTERS_SCORE_THRESHOLD
             modelFps = 5
             currentModel = "Letras"
             isPredictionModel = false
@@ -708,41 +708,43 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun addWordToSubtitle(newWord: String) {
-        runOnUiThread {
-            var breakWord = false
-            text = "${text}$newWord "
-            cameraUiContainerBinding.tvSubtitlesGhost.text = text
-
-            when (cameraUiContainerBinding.tvSubtitlesGhost.lineCount) {
-                1 -> firstLine.add(newWord)
-                2 -> secondLine.add(newWord)
-                3 -> thirdLine.add(newWord)
-                4 -> {
-                    firstLine = secondLine
-                    secondLine = thirdLine
-                    thirdLine = mutableListOf(newWord)
-                    breakWord = true
-                }
-            }
-
-            var finalText = ""
-
-            if (breakWord) {
-                for (word in firstLine) {
-                    finalText = "${finalText}$word "
-                }
-                for (word in secondLine) {
-                    finalText = "${finalText}$word "
-                }
-                for (word in thirdLine) {
-                    finalText = "${finalText}$word "
-                }
-                text = finalText
+        for (splitWord in newWord.split(" ")) {
+            runOnUiThread {
+                var breakWord = false
+                text = "${text}$splitWord "
                 cameraUiContainerBinding.tvSubtitlesGhost.text = text
-            } else {
-                finalText = text
+
+                when (cameraUiContainerBinding.tvSubtitlesGhost.lineCount) {
+                    1 -> firstLine.add(splitWord)
+                    2 -> secondLine.add(splitWord)
+                    3 -> thirdLine.add(splitWord)
+                    4 -> {
+                        firstLine = secondLine
+                        secondLine = thirdLine
+                        thirdLine = mutableListOf(splitWord)
+                        breakWord = true
+                    }
+                }
+
+                var finalText = ""
+
+                if (breakWord) {
+                    for (word in firstLine) {
+                        finalText = "${finalText}$word "
+                    }
+                    for (word in secondLine) {
+                        finalText = "${finalText}$word "
+                    }
+                    for (word in thirdLine) {
+                        finalText = "${finalText}$word "
+                    }
+                    text = finalText
+                    cameraUiContainerBinding.tvSubtitlesGhost.text = text
+                } else {
+                    finalText = text
+                }
+                cameraUiContainerBinding.tvSubtitles.text = finalText
             }
-            cameraUiContainerBinding.tvSubtitles.text = finalText
         }
     }
 
@@ -846,7 +848,8 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val NEW_WORD_SECONDS_WINDOW = 2
         private const val DONT_DETECT_SECONDS_WINDOW = 4
         private const val DYNAMIC_SCORE_THRESHOLD = 0.30
-        private const val NUMBERS_SCORE_THRESHOLD = 0.60
+        private const val NUMBERS_SCORE_THRESHOLD = 0.45
+        private const val LETTERS_SCORE_THRESHOLD = 0.45
 
         // Constants
         private const val MILLIS_IN_SECONDS = 1000f
