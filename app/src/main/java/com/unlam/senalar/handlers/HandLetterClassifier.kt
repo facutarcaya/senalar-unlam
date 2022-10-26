@@ -87,6 +87,25 @@ class HandLetterClassifier private constructor(
             return newArrayList
         }
 
+        if ((categoryList1[0].label == "O_D" && categoryList1[0].score > 0.3) ||
+            (categoryList1[1].label == "O_D" && categoryList1[1].score > 0.3) ) {
+
+            val newArrayList = arrayListOf(
+                Category("O_D", 0.55F),
+                if (categoryList1[1].label == "O_D") {
+                    Category(categoryList1[0].label, categoryList1[1].score)
+                } else {
+                    Category(categoryList1[1].label, categoryList1[1].score)
+                },
+                if (categoryList1[2].label == "O_D") {
+                    Category(categoryList1[0].label, categoryList1[2].score)
+                } else {
+                    Category(categoryList1[2].label, categoryList1[2].score)
+                }
+            )
+            return newArrayList
+        }
+
         return categoryList1
     }
 
