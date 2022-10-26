@@ -1,41 +1,98 @@
 {
   "predictions": {
     "donde": {
-      "colectivo": "para el Colectivo",
-      "hospital": "queda el Hospital más cercano?"
+      "colectivo": "is the stop of the bus",
+      "hospital": "is the nearest hospital?",
+      "comprar": "can I buy",
+      "subte": "is the subway",
+      "tren": "is the train",
+      "negocio": "is a shop?",
+      "pagar": "can I pay?"
     },
     "comprar": {
-      "agua": "Agua",
-      "comida": "Comida"
+      "agua": "water",
+      "comida": "food",
+      "ropa": "clothes"
+    },
+    "ayuda": {
+      "hospital": "I have to go to a hospital",
+      "ambulancia": "I need an ambulance",
+      "fiebre": "I have a fever",
+      "vomitos": "I have vomits",
+      "dolor": "I have pain",
+      "por favor": "please"
+
     },
     "hola": {
-      "perdon": "te quería pedir Perdón"
+      "perdon": "I wanted to apologize"
+    },
+    "necesitar": {
+      "hospital": "to go to a hospital",
+      "comprar": "to buy",
+      "comida": "food",
+      "agua": "water",
+      "pagar": "to pay"
+    },
+    "si": {
+      "necesitar": "I need",
+      "saber": "I know",
+      "ir": "I'll go",
+      "poder": "I can",
+      "gracias": "thank you"
+    },
+    "no": {
+      "necesitar": "I don't need",
+      "saber": "I don't know",
+      "ir": "I don't go",
+      "poder": "I can't",
+      "gracias": "thank you"
+
+    },
+    "saber": {
+      "que": "what it is",
+      "como": "how it is",
+      "cuanto": "how much it is",
+      "cuando": "when it is"
+    },
+    "muchas gracias": {
+      "saludo": "bye"
+    },
+    "saludo": {
+      "nombre": "my name is",
+      "como estas": "how are you?",
+      "buenos días": "good morning",
+      "buenas tardes": "good afternoon",
+      "buenas noches": "good night"
     }
   },
   "replacements": {
-    "no entender": "No entendí, ¿puede repetir otra vez?",
-    "comprar": "Quiero comprar",
-    "agua": "Quiero Agua",
-    "comida": "Quiero Comida",
-    "cuando": "¿Cuándo es?",
-    "dolor": "Siento Dolor",
-    "pagar": "Quiero pagar",
-    "duda": "Tengo una duda",
-    "ayuda": "Necesito ayuda",
-    "fiebre": "Tengo fiebre",
-    "vomito": "Tengo vómitos"
+    "necesitar": "I need",
+    "no entender": "I didn't understand, could you repeat?",
+    "cuando": "When?",
+    "dolor": "I feel pain",
+    "duda": "I have a question",
+    "fiebre": "I have a fever",
+    "vomitar": "I have vomits",
+    "saludo": "Hi",
+    "donde": "Where",
+    "comprar": "Buy",
+    "ayuda": "Help",
+    "si": "Yes",
+    "muchas gracias": "Thank you",
+    "perdon": "Sorry"
   },
   "sentences": {
-    "Gracias": "gracias_model",
-    "Cuando": "cuando_model",
-    "Perdón": "perdon_model",
-    "Donde": "donde_model",
-    "Comprar": "comprar_model",
-    "Si": "decision_model",
-    "No": "decision_model",
-    "Saludo": "saludo_model",
-    "Necesitar": "necesitar_model",
-    "Ayuda": "ayuda_model",
-    "Dolor": "dolor_model"
+    "si": "decisiones_model",
+    "no": "decisiones_model",
+    "saber": "saber_model",
+    "comprar": "comprar_model",
+    "necesitar": "necesitar_model",
+    "ayuda": "ayuda_model",
+    "colectivo": "numbers_model",
+    "subte": "letters_model",
+    "donde": "donde_model",
+    "saludo": "saludo_model",
+    "nombre": "letters_model",
+    "tren": "letters_model"
   }
 }

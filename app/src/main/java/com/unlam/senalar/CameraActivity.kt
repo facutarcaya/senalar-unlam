@@ -537,7 +537,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         handWordsClassifier = HandActionClassifier.createHandActionClassifier(
             this,
             "dynamic/base_model/base_model_model.tflite",
-            "dynamic/base_model/base_model_labels_${languageTranslation}.txt"
+            "dynamic/base_model/base_model_labels.txt"
         )
         handClassifier = handWordsClassifier
         isActionDetection = true
@@ -603,7 +603,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     handWordsPredictionClassifier = HandActionClassifier.createHandActionClassifier(
                         this,
                         "dynamic/models/$newModelName/$newModelName.tflite",
-                        "dynamic/models/$newModelName/${newModelName}_labels_${languageTranslation}.txt"
+                        "dynamic/models/$newModelName/${newModelName}_labels.txt"
                     )
 
                     handClassifier = handWordsPredictionClassifier
@@ -613,7 +613,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     lastPredictionStartTime = SystemClock.uptimeMillis()
 
                     scoreThreshold = when(newWord.lowercase()) {
-                        "saber" -> 0.50
+                        "saber" -> 0.70
                         else -> {
                             DYNAMIC_SCORE_THRESHOLD
                         }
@@ -758,7 +758,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             handWordsClassifier = HandActionClassifier.createHandActionClassifier(
                 this,
                 "dynamic/base_model/base_model_model.tflite",
-                "dynamic/base_model/base_model_labels_${languageTranslation}.txt"
+                "dynamic/base_model/base_model_labels.txt"
             )
 
             Log.d(TAG, "Words Classifier created.")
