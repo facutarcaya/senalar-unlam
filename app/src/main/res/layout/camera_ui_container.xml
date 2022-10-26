@@ -166,14 +166,14 @@
                 android:layout_height="wrap_content"
                 android:text="Seña 1:"
                 android:textColor="@color/contrast_light_blue"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textStyle="bold"/>
 
             <ProgressBar
                 android:id="@+id/pgDetectedItem0"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_gravity="center"
-                android:layout_width="100dp"
+                android:layout_width="125dp"
                 android:layout_height="30dp"
                 android:scaleY="5"
                 android:layout_weight="1" />
@@ -194,16 +194,16 @@
                 android:layout_height="wrap_content"
                 android:text="Seña 2:"
                 android:textColor="@color/contrast_light_blue"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textStyle="bold"/>
 
             <ProgressBar
                 android:id="@+id/pgDetectedItem1"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_gravity="center"
-                android:layout_width="100dp"
+                android:layout_width="125dp"
                 android:layout_height="30dp"
-                android:scaleY="5"
+                android:scaleY="4"
                 android:layout_weight="1" />
 
 
@@ -222,16 +222,16 @@
                 android:layout_height="wrap_content"
                 android:text="Seña 3:"
                 android:textColor="@color/contrast_light_blue"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textStyle="bold"/>
 
             <ProgressBar
                 android:id="@+id/pgDetectedItem2"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_gravity="center"
-                android:layout_width="100dp"
+                android:layout_width="125dp"
                 android:layout_height="30dp"
-                android:scaleY="5"
+                android:scaleY="4"
                 android:layout_weight="1" />
 
 
@@ -243,7 +243,7 @@
             android:layout_height="wrap_content"
             android:text="Etapa: Inicio"
             android:textColor="@color/contrast_light_blue"
-            android:textSize="20sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
     </LinearLayout>
 

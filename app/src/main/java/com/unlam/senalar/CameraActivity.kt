@@ -53,7 +53,7 @@ import java.util.concurrent.Executors
 @androidx.camera.lifecycle.ExperimentalUseCaseGroupLifecycle
 class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
-    private val debugMode = true
+    private val debugMode = false
 
     private lateinit var binding : ActivityCameraBinding
     private lateinit var cameraUiContainerBinding: CameraUiContainerBinding
@@ -72,6 +72,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var modelFps = 16 // Model FPS
     private var currentModel = "Inicio"
     private var isPredictionModel = false
+    private var comeFromWords = false
 
     private var lastInferenceStartTime: Long = 0
     private var lastPredictionStartTime: Long = 0
@@ -93,9 +94,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var soundOn = true
 
     // Subtitles variables
-    private var firstLine = mutableListOf<String>()
-    private var secondLine = mutableListOf<String>()
-    private var thirdLine = mutableListOf<String>()
+    private var firstLine = mutableListOf<NewWord>()
+    private var secondLine = mutableListOf<NewWord>()
+    private var thirdLine = mutableListOf<NewWord>()
     private var text : String = ""
 
     // TTS variables
@@ -246,6 +247,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             modelFps = 5
             currentModel = "Números"
             isPredictionModel = false
+            letterToWord = ""
+            makeWordsNotDeletable()
+            comeFromWords = false
         }
 
         cameraUiContainerBinding.btnLetters.setOnClickListener {
@@ -259,6 +263,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             modelFps = 5
             currentModel = "Letras"
             isPredictionModel = false
+            letterToWord = ""
+            makeWordsNotDeletable()
+            comeFromWords = false
         }
 
         cameraUiContainerBinding.btnWords.setOnClickListener {
@@ -273,6 +280,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             modelFps = 16
             currentModel = "Inicio"
             isPredictionModel = false
+            letterToWord = ""
+            makeWordsNotDeletable()
+            comeFromWords = false
         }
     }
 
@@ -500,7 +510,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             actionLastResult = newWord
                         } else {
                             detectionCount++
-                            if (detectionCount >= MIN_DETECTION_ACTION) {
+                            if ((detectionCount >= MIN_DETECTION_ACTION && isActionDetection)
+                                ||
+                                (detectionCount >= MIN_DETECTION_GESTURE && !isActionDetection)) {
                                 if (!isPredictionModel || ((currentTime - lastPredictionStartTime) / MILLIS_IN_SECONDS) > DONT_DETECT_SECONDS_WINDOW) {
                                     processWord(lastResult, newWord)
                                     lastResult = newWord
@@ -569,9 +581,6 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return if (replacedWord.lowercase() == STOP_WORD && !isActionDetection) {
             val newLetterToWord = letterToWord.capitalize()
             letterToWord = ""
-            runOnUiThread {
-                cameraUiContainerBinding.btnWords.performClick()
-            }
             newLetterToWord
         } else {
             replacedWord
@@ -585,12 +594,14 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     if (newModelName == "numbers_model") {
                         runOnUiThread {
                             cameraUiContainerBinding.btnNumbers.performClick()
+                            comeFromWords = true
                         }
                         return
                     }
                     if (newModelName == "letters_model") {
                         runOnUiThread {
                             cameraUiContainerBinding.btnLetters.performClick()
+                            comeFromWords = true
                         }
                         return
                     }
@@ -623,6 +634,12 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
                 if (isPredictionModel) {
                     returnToBaseModel()
+                }
+            }
+        } else {
+            if (newWord.lowercase() == STOP_WORD && comeFromWords) {
+                runOnUiThread {
+                    cameraUiContainerBinding.btnWords.performClick()
                 }
             }
         }
@@ -711,17 +728,27 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         for (splitWord in newWord.split(" ")) {
             runOnUiThread {
                 var breakWord = false
-                text = "${text}$splitWord "
+
+                if (isActionDetection || splitWord.length <= 1) {
+                    text = "${text}$splitWord "
+                } else {
+                    var replaceWord = ""
+                    splitWord.forEach {
+                        replaceWord = "${replaceWord}${it} "
+                    }
+                    deleteOldWords()
+                    text = text.replace(replaceWord, "$splitWord ")
+                }
                 cameraUiContainerBinding.tvSubtitlesGhost.text = text
 
                 when (cameraUiContainerBinding.tvSubtitlesGhost.lineCount) {
-                    1 -> firstLine.add(splitWord)
-                    2 -> secondLine.add(splitWord)
-                    3 -> thirdLine.add(splitWord)
+                    1 -> firstLine.add(NewWord(splitWord, !isActionDetection))
+                    2 -> secondLine.add(NewWord(splitWord, !isActionDetection))
+                    3 -> thirdLine.add(NewWord(splitWord, !isActionDetection))
                     4 -> {
                         firstLine = secondLine
                         secondLine = thirdLine
-                        thirdLine = mutableListOf(splitWord)
+                        thirdLine = mutableListOf(NewWord(splitWord, !isActionDetection))
                         breakWord = true
                     }
                 }
@@ -730,13 +757,13 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 if (breakWord) {
                     for (word in firstLine) {
-                        finalText = "${finalText}$word "
+                        finalText = "${finalText}${word.word} "
                     }
                     for (word in secondLine) {
-                        finalText = "${finalText}$word "
+                        finalText = "${finalText}${word.word} "
                     }
                     for (word in thirdLine) {
-                        finalText = "${finalText}$word "
+                        finalText = "${finalText}${word.word} "
                     }
                     text = finalText
                     cameraUiContainerBinding.tvSubtitlesGhost.text = text
@@ -745,6 +772,30 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
                 cameraUiContainerBinding.tvSubtitles.text = finalText
             }
+        }
+    }
+
+    private fun deleteOldWords() {
+        firstLine.removeAll {
+            it.deletable
+        }
+        secondLine.removeAll {
+            it.deletable
+        }
+        thirdLine.removeAll {
+            it.deletable
+        }
+    }
+
+    private fun makeWordsNotDeletable() {
+        firstLine.forEach {
+            it.deletable = false
+        }
+        secondLine.forEach {
+            it.deletable = false
+        }
+        thirdLine.forEach {
+            it.deletable = false
         }
     }
 
@@ -843,6 +894,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val MODEL_FPS_ERROR_RANGE = 0.1 // Acceptable error range in fps.
         private const val MAX_CAPTURE_FPS = 20
         private const val MIN_DETECTION_ACTION = 10
+        private const val MIN_DETECTION_GESTURE = 5
         private const val PREDICTION_SECONDS_WINDOW = 10
         private const val SAME_WORD_SECONDS_WINDOW = 5
         private const val NEW_WORD_SECONDS_WINDOW = 2
