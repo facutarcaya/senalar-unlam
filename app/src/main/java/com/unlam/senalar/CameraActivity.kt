@@ -678,7 +678,7 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
      */
     private fun speakThroughTTS(newWord: String) {
         if (soundOn) {
-            tts!!.speak(newWord, TextToSpeech.QUEUE_ADD, null, "")
+            tts!!.speak(newWord.lowercase(), TextToSpeech.QUEUE_ADD, null, "")
         }
     }
 

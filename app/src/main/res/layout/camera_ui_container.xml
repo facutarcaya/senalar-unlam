@@ -173,9 +173,9 @@
                 android:id="@+id/pgDetectedItem0"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_gravity="center"
-                android:layout_width="125dp"
+                android:layout_width="100dp"
                 android:layout_height="30dp"
-                android:scaleY="5"
+                android:scaleY="4"
                 android:layout_weight="1" />
 
 
@@ -201,7 +201,7 @@
                 android:id="@+id/pgDetectedItem1"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_gravity="center"
-                android:layout_width="125dp"
+                android:layout_width="100dp"
                 android:layout_height="30dp"
                 android:scaleY="4"
                 android:layout_weight="1" />
@@ -229,7 +229,7 @@
                 android:id="@+id/pgDetectedItem2"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_gravity="center"
-                android:layout_width="125dp"
+                android:layout_width="100dp"
                 android:layout_height="30dp"
                 android:scaleY="4"
                 android:layout_weight="1" />
