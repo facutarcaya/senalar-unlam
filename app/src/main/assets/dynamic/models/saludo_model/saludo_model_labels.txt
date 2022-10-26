@@ -1,5 +1,5 @@
 Como estas_R
-Buenos dias_R
+Buenos días_R
 Buenas tardes_R
 Buenas noches_R
 Nombre_R

@@ -77,8 +77,13 @@
     "comprar": "Comprar",
     "ayuda": "Ajuda",
     "si": "Sim",
+    "no": "Não",
     "muchas gracias": "Obrigado",
-    "perdon": "Desculpe"
+    "perdon": "Desculpe",
+    "ambulancia": "Ambulância",
+    "ropa": "roupas",
+    "comida": "comida",
+    "agua": "agua"
   },
   "sentences": {
     "si": "decisiones_model",
