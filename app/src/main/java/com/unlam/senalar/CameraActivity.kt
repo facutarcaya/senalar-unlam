@@ -238,7 +238,12 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun initializeDeleteButton() {
         cameraUiContainerBinding.btnDeleteWords.setOnClickListener {
+            deleteLastWord()
+        }
+
+        cameraUiContainerBinding.btnDeleteWords.setOnLongClickListener {
             deleteAllWords()
+            true
         }
     }
 
@@ -776,6 +781,37 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 cameraUiContainerBinding.tvSubtitles.text = finalText
             }
         }
+    }
+
+    private fun deleteLastWord() {
+
+        if (this.thirdLine.isNotEmpty()) {
+            this.thirdLine.removeLast()
+        } else if (this.secondLine.isNotEmpty()) {
+            this.secondLine.removeLast()
+        } else if (this.firstLine.isNotEmpty()) {
+            this.firstLine.removeLast()
+        } else {
+            return
+        }
+
+        if (letterToWord.isNotEmpty()) {
+            letterToWord = letterToWord.dropLast(1)
+        }
+
+        var finalText = ""
+        for (word in firstLine) {
+            finalText = "${finalText}${word.word} "
+        }
+        for (word in secondLine) {
+            finalText = "${finalText}${word.word} "
+        }
+        for (word in thirdLine) {
+            finalText = "${finalText}${word.word} "
+        }
+        text = finalText
+        cameraUiContainerBinding.tvSubtitlesGhost.text = text
+        cameraUiContainerBinding.tvSubtitles.text = finalText
     }
 
     private fun deleteAllWords() {
