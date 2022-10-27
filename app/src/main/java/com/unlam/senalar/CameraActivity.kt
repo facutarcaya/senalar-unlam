@@ -738,24 +738,20 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 if (isActionDetection || !newWord.deletable) {
                     text = "${text}$splitWord "
+                    cameraUiContainerBinding.tvSubtitlesGhost.text = text
                 } else {
-                    var replaceWord = ""
-                    splitWord.forEach {
-                        replaceWord = "${replaceWord}${it} "
-                    }
                     deleteOldWords()
-                    text = text.replace(replaceWord, "$splitWord ")
+                    breakWord = true
                 }
-                cameraUiContainerBinding.tvSubtitlesGhost.text = text
 
                 when (cameraUiContainerBinding.tvSubtitlesGhost.lineCount) {
-                    1 -> firstLine.add(NewWord(splitWord, !isActionDetection))
-                    2 -> secondLine.add(NewWord(splitWord, !isActionDetection))
-                    3 -> thirdLine.add(NewWord(splitWord, !isActionDetection))
+                    1 -> firstLine.add(NewWord(splitWord, !isActionDetection && !newWord.deletable))
+                    2 -> secondLine.add(NewWord(splitWord, !isActionDetection && !newWord.deletable))
+                    3 -> thirdLine.add(NewWord(splitWord, !isActionDetection && !newWord.deletable))
                     4 -> {
                         firstLine = secondLine
                         secondLine = thirdLine
-                        thirdLine = mutableListOf(NewWord(splitWord, !isActionDetection))
+                        thirdLine = mutableListOf(NewWord(splitWord, !isActionDetection && !newWord.deletable))
                         breakWord = true
                     }
                 }
