@@ -352,13 +352,13 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun initializeMuteButton() {
         cameraUiContainerBinding.btnSwitchMute.setOnClickListener {
             if (muteOn) {
-                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_play_circle_outline_24), null)
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_pause_circle_outline_24), null)
                 muteOn = false
             } else {
                 // We restart the last word, since the user decided to stop the inference
                 lastResult = ""
 
-                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_pause_circle_outline_24), null)
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_play_circle_outline_24), null)
                 muteOn = true
             }
         }
