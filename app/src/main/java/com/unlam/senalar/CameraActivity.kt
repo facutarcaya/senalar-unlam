@@ -233,6 +233,13 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         initializeFlashButton()
         initializeCastButton()
         initializeModelButtons()
+        initializeDeleteButton()
+    }
+
+    private fun initializeDeleteButton() {
+        cameraUiContainerBinding.btnDeleteWords.setOnClickListener {
+            deleteAllWords()
+        }
     }
 
     private fun initializeModelButtons() {
@@ -562,14 +569,14 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun processWord(lastWord: String, newWord: String) {
         var replacedWord = searchForPredictions(lastWord, newWord)
-        replacedWord = searchForStopSign(replacedWord)
-        addWordToSubtitle(replacedWord)
-        speakThroughTTS(replacedWord)
-        sendToPC(replacedWord)
+        var newReplacedWord = searchForStopSign(replacedWord)
+        addWordToSubtitle(newReplacedWord)
+        speakThroughTTS(newReplacedWord.word)
+        sendToPC(newReplacedWord.word)
         changeDetectionModel(newWord)
     }
 
-    private fun searchForStopSign(replacedWord: String): String {
+    private fun searchForStopSign(replacedWord: String): NewWord {
         if (!isActionDetection) {
             if (replacedWord.lowercase() != STOP_WORD) {
                 letterToWord += replacedWord
@@ -581,9 +588,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return if (replacedWord.lowercase() == STOP_WORD && !isActionDetection) {
             val newLetterToWord = letterToWord.capitalize()
             letterToWord = ""
-            newLetterToWord
+            NewWord(newLetterToWord, true)
         } else {
-            replacedWord
+            NewWord(replacedWord, false)
         }
     }
 
@@ -724,12 +731,12 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun addWordToSubtitle(newWord: String) {
-        for (splitWord in newWord.split(" ")) {
+    private fun addWordToSubtitle(newWord: NewWord) {
+        for (splitWord in newWord.word.split(" ")) {
             runOnUiThread {
                 var breakWord = false
 
-                if (isActionDetection || splitWord.length <= 1) {
+                if (isActionDetection || !newWord.deletable) {
                     text = "${text}$splitWord "
                 } else {
                     var replaceWord = ""
@@ -773,6 +780,16 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 cameraUiContainerBinding.tvSubtitles.text = finalText
             }
         }
+    }
+
+    private fun deleteAllWords() {
+        text = ""
+        cameraUiContainerBinding.tvSubtitlesGhost.text = text
+        cameraUiContainerBinding.tvSubtitles.text = getString(R.string.text_sample)
+        this.firstLine = mutableListOf<NewWord>()
+        this.secondLine = mutableListOf<NewWord>()
+        this.thirdLine = mutableListOf<NewWord>()
+        letterToWord = ""
     }
 
     private fun deleteOldWords() {
