@@ -233,6 +233,18 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         initializeFlashButton()
         initializeCastButton()
         initializeModelButtons()
+        initializeDeleteButton()
+    }
+
+    private fun initializeDeleteButton() {
+        cameraUiContainerBinding.btnDeleteWords.setOnClickListener {
+            deleteLastWord()
+        }
+
+        cameraUiContainerBinding.btnDeleteWords.setOnLongClickListener {
+            deleteAllWords()
+            true
+        }
     }
 
     private fun initializeModelButtons() {
@@ -345,13 +357,13 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun initializeMuteButton() {
         cameraUiContainerBinding.btnSwitchMute.setOnClickListener {
             if (muteOn) {
-                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_play_circle_outline_24), null)
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_pause_circle_outline_24), null)
                 muteOn = false
             } else {
                 // We restart the last word, since the user decided to stop the inference
                 lastResult = ""
 
-                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_pause_circle_outline_24), null)
+                changeImageAndColorToButton(cameraUiContainerBinding.btnSwitchMute, getDrawable(R.drawable.ic_baseline_play_circle_outline_24), null)
                 muteOn = true
             }
         }
@@ -562,14 +574,14 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun processWord(lastWord: String, newWord: String) {
         var replacedWord = searchForPredictions(lastWord, newWord)
-        replacedWord = searchForStopSign(replacedWord)
-        addWordToSubtitle(replacedWord)
-        speakThroughTTS(replacedWord)
-        sendToPC(replacedWord)
+        var newReplacedWord = searchForStopSign(replacedWord)
+        addWordToSubtitle(newReplacedWord)
+        speakThroughTTS(newReplacedWord.word)
+        sendToPC(newReplacedWord.word)
         changeDetectionModel(newWord)
     }
 
-    private fun searchForStopSign(replacedWord: String): String {
+    private fun searchForStopSign(replacedWord: String): NewWord {
         if (!isActionDetection) {
             if (replacedWord.lowercase() != STOP_WORD) {
                 letterToWord += replacedWord
@@ -581,9 +593,9 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return if (replacedWord.lowercase() == STOP_WORD && !isActionDetection) {
             val newLetterToWord = letterToWord.capitalize()
             letterToWord = ""
-            newLetterToWord
+            NewWord(newLetterToWord, true)
         } else {
-            replacedWord
+            NewWord(replacedWord, false)
         }
     }
 
@@ -724,31 +736,27 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun addWordToSubtitle(newWord: String) {
-        for (splitWord in newWord.split(" ")) {
+    private fun addWordToSubtitle(newWord: NewWord) {
+        for (splitWord in newWord.word.split(" ")) {
             runOnUiThread {
                 var breakWord = false
 
-                if (isActionDetection || splitWord.length <= 1) {
+                if (isActionDetection || !newWord.deletable) {
                     text = "${text}$splitWord "
+                    cameraUiContainerBinding.tvSubtitlesGhost.text = text
                 } else {
-                    var replaceWord = ""
-                    splitWord.forEach {
-                        replaceWord = "${replaceWord}${it} "
-                    }
                     deleteOldWords()
-                    text = text.replace(replaceWord, "$splitWord ")
+                    breakWord = true
                 }
-                cameraUiContainerBinding.tvSubtitlesGhost.text = text
 
                 when (cameraUiContainerBinding.tvSubtitlesGhost.lineCount) {
-                    1 -> firstLine.add(NewWord(splitWord, !isActionDetection))
-                    2 -> secondLine.add(NewWord(splitWord, !isActionDetection))
-                    3 -> thirdLine.add(NewWord(splitWord, !isActionDetection))
+                    1 -> firstLine.add(NewWord(splitWord, !isActionDetection && !newWord.deletable))
+                    2 -> secondLine.add(NewWord(splitWord, !isActionDetection && !newWord.deletable))
+                    3 -> thirdLine.add(NewWord(splitWord, !isActionDetection && !newWord.deletable))
                     4 -> {
                         firstLine = secondLine
                         secondLine = thirdLine
-                        thirdLine = mutableListOf(NewWord(splitWord, !isActionDetection))
+                        thirdLine = mutableListOf(NewWord(splitWord, !isActionDetection && !newWord.deletable))
                         breakWord = true
                     }
                 }
@@ -773,6 +781,47 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 cameraUiContainerBinding.tvSubtitles.text = finalText
             }
         }
+    }
+
+    private fun deleteLastWord() {
+
+        if (this.thirdLine.isNotEmpty()) {
+            this.thirdLine.removeLast()
+        } else if (this.secondLine.isNotEmpty()) {
+            this.secondLine.removeLast()
+        } else if (this.firstLine.isNotEmpty()) {
+            this.firstLine.removeLast()
+        } else {
+            return
+        }
+
+        if (letterToWord.isNotEmpty()) {
+            letterToWord = letterToWord.dropLast(1)
+        }
+
+        var finalText = ""
+        for (word in firstLine) {
+            finalText = "${finalText}${word.word} "
+        }
+        for (word in secondLine) {
+            finalText = "${finalText}${word.word} "
+        }
+        for (word in thirdLine) {
+            finalText = "${finalText}${word.word} "
+        }
+        text = finalText
+        cameraUiContainerBinding.tvSubtitlesGhost.text = text
+        cameraUiContainerBinding.tvSubtitles.text = finalText
+    }
+
+    private fun deleteAllWords() {
+        text = ""
+        cameraUiContainerBinding.tvSubtitlesGhost.text = text
+        cameraUiContainerBinding.tvSubtitles.text = getString(R.string.text_sample)
+        this.firstLine = mutableListOf<NewWord>()
+        this.secondLine = mutableListOf<NewWord>()
+        this.thirdLine = mutableListOf<NewWord>()
+        letterToWord = ""
     }
 
     private fun deleteOldWords() {
