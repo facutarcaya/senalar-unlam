@@ -510,7 +510,13 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                     showResultsInDebug(results)
 
-                    val newWord = sanitizeNewWord(results[0].label)
+                    val newWord = sanitizeNewWord(results[0].label).let {
+                        if (it.lowercase() == "n" && handsResult.multiHandLandmarks().size > 1) {
+                            "Ñ"
+                        } else {
+                            it
+                        }
+                    }
                     val newWordScore = results[0].score
 
                     if (!muteOn &&
@@ -681,7 +687,13 @@ class CameraActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun sendToPC(newWord: String) {
-        this.clientPC?.let { it.addWordToQueue("${newWord}|") }
+        val pcLanguage = when (languageTranslation) {
+            LanguageHelper.ENGLISH_LANGUAGE -> "en-us"
+            LanguageHelper.PORTUGUESE_LANGUAGE -> "pt"
+            else -> "es-us"
+        }
+
+        this.clientPC?.let { it.addWordToQueue("${pcLanguage}/${newWord}|") }
     }
 
     /**
