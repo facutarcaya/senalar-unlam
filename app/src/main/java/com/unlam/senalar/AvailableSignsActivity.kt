@@ -44,7 +44,7 @@ class AvailableSignsActivity : AppCompatActivity() {
         }
 
         binding.btnWordsOption.setOnClickListener {
-            binding.imageViewer.setImageDrawable(getDrawable(R.drawable.signs))
+            binding.imageViewer.setImageDrawable(getDrawable(R.drawable.words_image))
             binding.imageViewer.zoomTo(1f, false)
             binding.btnWordsOption.backgroundTintList = ColorStateList.valueOf(getResources().getColor(R.color.contrast_light_blue))
             binding.btnWordsOption.setTextColor(getResources().getColor(R.color.main_light_blue))

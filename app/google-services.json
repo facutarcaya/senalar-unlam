@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "481251153805",
+    "firebase_url": "https://senalar-unlam-default-rtdb.firebaseio.com",
     "project_id": "senalar-unlam",
     "storage_bucket": "senalar-unlam.appspot.com"
   },
@@ -13,6 +14,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "481251153805-8cmj8bj6dhmvqvdehqk78et33s1brsgi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.unlam.senalar",
+            "certificate_hash": "2a55831bc8975d597949372b7a4fef59d4c896e7"
+          }
+        },
         {
           "client_id": "481251153805-efadqtalu7h15aot7fvmnahobi82lre4.apps.googleusercontent.com",
           "client_type": 1,
