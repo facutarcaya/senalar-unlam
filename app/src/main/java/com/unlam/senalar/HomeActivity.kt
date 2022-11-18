@@ -85,7 +85,7 @@ class HomeActivity : AppCompatActivity() {
         }
 
         binding.btnAvailableSigns.setOnClickListener {
-            Toast.makeText(this, "Estamos trabajando en esta sección", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, AvailableSignsActivity::class.java))
         }
 
         binding.cameraButton.setOnClickListener {
